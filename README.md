@@ -1,0 +1,1 @@
+IDELUX AI Experience: web vertical 9:16 con voz Realtime y edición Images. Importar este repo en Vercel como Other. Configurar OPENAI_API_KEY en Settings > Environment Variables (sin publicarla). Publicar y probar cámara, voz y fotos por HTTPS.

@@ -45,7 +45,32 @@ function resetPhoto(){$('aiChoices').classList.add('hidden');$('sharePanel').cla
 function askSafe(text){if(channel?.readyState==='open'&&!capturing&&!busy)ask(text)}
 async function generateImage(optionPrompt='',optionLabel=''){if(!original){setPhotoStatus('Primero toma una foto');return}if(busy)return;busy=true;$('editBtn').disabled=true;Array.from($('aiChoiceButtons').children).forEach(b=>b.disabled=true);generated='';$('finalTab').disabled=true;showImage('original');setPhotoStatus('Creando tu recuerdo con IA… puede tardar unos segundos.',true);try{const prompt=['PROMPT PRINCIPAL DEL EVENTO (manda sobre todas las variantes visuales):\n'+(config.basePrompt||config.theme||'Retrato fotográfico profesional'),'CONTEXTO DEL EVENTO (compatible con el principal):\n'+(config.theme||''),'SUBPROMPT DEL BOTÓN ELEGIDO (solo variación secundaria, no reemplaza el principal):\n'+(optionPrompt||''),'DETALLE ADICIONAL OPCIONAL (prioridad menor):\n'+(optionPrompt?'':($('photoPrompt').value||config.manualPrompt||'')),'Si las instrucciones se contradicen, respeta el prompt principal. Evita alterar los rostros reales o el número de personas.'].join('\n\n');const response=await fetch('/api/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:original,prompt,references:config.references||[]})});const data=await response.json();if(!response.ok)throw Error(data.error||'La generación no se pudo completar');if(!data.image?.startsWith('data:image/'))throw Error('El servidor no devolvió una imagen');await new Promise((resolve,reject)=>{const check=new Image();check.onload=resolve;check.onerror=()=>reject(Error('La foto generada no pudo cargarse'));check.src=data.image});generated=data.image;$('result').src=generated;$('finalTab').disabled=false;showImage('final');setPhotoStatus('¡Tu fotografía final con IA está lista!');updateShare();speak('¡Tu recuerdo con inteligencia artificial está listo!');/* Evitar cancelar una locución de voz en curso */}catch(e){setPhotoStatus('No se pudo generar la foto con IA: '+e.message+' Puedes guardar la foto original o volver a intentar.')}finally{busy=false;$('editBtn').disabled=false;Array.from($('aiChoiceButtons').children).forEach(b=>b.disabled=false)}}
 async function makeQR(){if(!config.enableQr)return;const photo=generated||original;if(!photo)return;const btn=$('qrBtn');btn.disabled=true;$('qrOutput').classList.remove('hidden');$('qrImage').classList.add('hidden');$('photoLink').classList.add('hidden');$('qrStatus').textContent='Preparando un enlace seguro de descarga…';try{const r=await fetch('/api/share',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:photo})});const d=await r.json();if(!r.ok)throw Error(d.error||'No fue posible publicar la foto');const url=d.url;$('qrImage').src='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(url);$('qrImage').classList.remove('hidden');$('photoLink').href=url;$('photoLink').classList.remove('hidden');$('qrStatus').textContent='Escanea el QR con tu celular para abrir la foto.'}catch(e){$('qrStatus').textContent='QR no disponible: '+e.message}finally{btn.disabled=false}}
-function printPhoto(){const photo=generated||original;if(!photo)return;const landscape=config.printOrientation==='landscape';const style=document.getElementById('printDynamicStyle')||document.createElement('style');style.id='printDynamicStyle';style.textContent=landscape?'@media print{@page{size:150mm 100mm;margin:0}html,body,#printZone{width:150mm!important;height:100mm!important}}':'@media print{@page{size:100mm 150mm;margin:0}html,body,#printZone{width:100mm!important;height:150mm!important}}';document.head.appendChild(style);const img=$('printImage');img.onload=()=>{img.onload=null;window.print()};img.src=photo;if(img.complete&&img.naturalWidth){img.onload=null;window.print()}}
+async function printPhoto(){
+ const photo=generated||original;if(!photo)return;
+ const landscape=config.printOrientation==='landscape';
+ try{
+  const source=new Image();source.src=photo;await source.decode();
+  const w=landscape?1800:1200,h=landscape?1200:1800;
+  const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
+  const scale=Math.max(w/source.naturalWidth,h/source.naturalHeight);
+  const sw=w/scale,sh=h/scale,sx=(source.naturalWidth-sw)/2,sy=(source.naturalHeight-sh)/2;
+  ctx.drawImage(source,sx,sy,sw,sh,0,0,w,h);
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.96));
+  if(!blob)throw Error('No se pudo preparar la imagen');
+  const src=URL.createObjectURL(blob);
+  const frame=document.createElement('iframe');frame.title='Impresión fotográfica 10x15';frame.style.cssText='position:fixed;left:0;top:0;width:0;height:0;border:0;opacity:0;pointer-events:none';
+  document.body.appendChild(frame);
+  const doc=frame.contentDocument;doc.open();
+  const width=landscape?150:100,height=landscape?100:150;
+  doc.write('<!doctype html><html><head><meta charset="utf-8"><title></title><style>@page{size:'+width+'mm '+height+'mm;margin:0}*{box-sizing:border-box}html,body{margin:0!important;padding:0!important;width:'+width+'mm;height:'+height+'mm;overflow:hidden;background:#fff}img{display:block;position:absolute;left:-1mm;top:-1mm;width:'+(width+2)+'mm;height:'+(height+2)+'mm;max-width:none;object-fit:cover}</style></head><body><img id="pic" alt="" src="'+src+'"></body></html>');doc.close();
+  const pic=doc.getElementById('pic');
+  await new Promise((resolve,reject)=>{if(pic.complete&&pic.naturalWidth)return resolve();pic.onload=resolve;pic.onerror=()=>reject(Error('Error cargando la fotografía de impresión'))});
+  frame.contentWindow.focus();frame.contentWindow.print();
+  setTimeout(()=>{frame.remove();URL.revokeObjectURL(src)},120000);
+  setPhotoStatus('Impresión preparada en una sola foto de 10 × 15 cm. Selecciona papel 4×6 sin bordes, márgenes ninguno, escala 100 %, y desactiva encabezados y pies.');
+ }catch(e){setPhotoStatus('No se pudo preparar la impresión: '+e.message)}
+}
 function saveImage(){let url=generated||original;if(!url)return;let a=document.createElement('a');a.href=url;a.download='idelux-'+(generated?'foto-ia':'foto-original')+'.'+(generated?'png':'jpg');document.body.appendChild(a);a.click();a.remove()}
 function closeCamera(){cam?.getTracks().forEach(t=>t.stop());cam=null;$('photoPanel').classList.remove('active');$('countdown').classList.remove('show')}
 renderHomeButtons();syncEvents();

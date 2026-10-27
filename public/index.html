@@ -16,6 +16,43 @@
 .photoOnly .rotating-copy{display:block;min-height:25px;text-align:center;font-size:13px;letter-spacing:.06em;color:#8fddcf;margin:10px auto;animation:fadeCopy .5s ease}.rotating-copy{display:none}
 @keyframes brandHalo{to{opacity:.4;transform:translateX(-50%) scale(1.2)}}@keyframes logoFloat{50%{transform:translateY(-6px)}}@keyframes btnPulse{50%{box-shadow:0 0 40px #20dfba66;transform:scale(1.018)}}@keyframes btnShine{0%,35%{transform:translateX(-130%)}65%,100%{transform:translateX(130%)}}@keyframes drift{to{transform:translate3d(18px,-75px,0);opacity:0}}@keyframes fadeCopy{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.photoOnly .particle,.photoOnly .brandWelcome:before,.photoOnly .brandWelcome img,.photoOnly #homeOptions button,.photoOnly #homeOptions button:after,.photoOnly .rotating-copy{animation:none!important}}
+</style><style id="welcomeLayouts">
+/* Portadas 2.0: composiciones deliberadamente diferentes para tótem 9:16 */
+.photoOnly.shell{max-width:620px;min-height:100dvh;padding:22px 28px 35px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.photoOnly header{flex:0 0 auto}
+.photoOnly .brandWelcome{display:flex;flex:1 1 auto;min-height:400px;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:25px 6px 6px;margin:10px 0 0}
+.photoOnly .brandWelcome img{max-width:min(78%,380px);max-height:230px;width:auto;margin:0 auto 22px;object-fit:contain}
+.photoOnly .brandWelcome h2{font-size:clamp(34px,6vw,49px);line-height:1.08;letter-spacing:-.035em;margin:0;max-width:500px}
+.photoOnly .brandWelcome #brandSubtitle{font-size:17px;line-height:1.4;margin:2px auto;color:#b6d9df}
+.photoOnly .rotating-copy{font-weight:650;font-size:14px;letter-spacing:.14em;text-transform:uppercase;margin-top:10px}
+.photoOnly #homeOptions{padding:0;margin:10px auto 0;flex:0 0 auto;width:100%}
+.photoOnly #homeOptions button{min-height:86px;max-width:450px;border-radius:22px;font-weight:850;letter-spacing:.04em;box-shadow:0 9px 40px #17cdb833}
+.photoOnly #eventIndicator{margin:7px auto 0}
+.photoOnly header span{opacity:.5}
+.photoOnly .brandWelcome:before{z-index:-1}
+.photoOnly.theme-elegant{background:radial-gradient(ellipse at 50% 45%,#153f46 0%,#091c27 55%,#050e18 100%);border-left:1px solid #b4e4d317;border-right:1px solid #b4e4d317}
+.photoOnly.theme-elegant .brandWelcome{gap:20px}
+.photoOnly.theme-elegant .brandWelcome img{max-height:230px;margin-bottom:40px}
+.photoOnly.theme-elegant .brandWelcome h2{font-weight:550;letter-spacing:-.05em}
+.photoOnly.theme-elegant .brandWelcome:after{content:"";height:1px;width:85px;background:linear-gradient(90deg,transparent,#b9e9d3,transparent);order:2;margin:5px auto}
+.photoOnly.theme-elegant #brandSubtitle{order:3}
+.photoOnly.theme-elegant .rotating-copy{order:4;color:#d4eec8}
+.photoOnly.theme-tech{background:radial-gradient(circle at 50% 30%,#0e4763 0%,#041725 53%,#030b19 100%)}
+.photoOnly.theme-tech .brandWelcome{position:relative;justify-content:center;padding:30px 12px 0;gap:15px}
+.photoOnly.theme-tech .brandWelcome:before{width:min(85vw,440px);height:min(85vw,440px);top:16%;border-radius:50%;background:radial-gradient(circle,#00cde64b 0%,#0bd9ed0f 48%,transparent 64%);border:1px solid #59e8ff40;box-shadow:0 0 0 25px #28c4df12,0 0 0 70px #20d1d80c,inset 0 0 50px #19cadd50;filter:none;animation:brandHalo 5s ease-in-out infinite alternate}
+.photoOnly.theme-tech .brandWelcome img{max-height:210px;margin-bottom:40px;z-index:1;filter:drop-shadow(0 0 25px #15e8ff75)}
+.photoOnly.theme-tech h2{font-weight:900;text-transform:uppercase;font-size:clamp(32px,5.5vw,44px);text-shadow:0 0 20px #36e9ff55}
+.photoOnly.theme-tech #brandSubtitle{color:#75ecf1}
+.photoOnly.theme-tech #homeOptions button{background:linear-gradient(110deg,#2ae0de,#7bece8);border:1px solid #a0ffff80}
+.photoOnly.theme-show{background:radial-gradient(ellipse at 25% 14%,#602a8b58,transparent 42%),radial-gradient(ellipse at 90% 70%,#006cb35e,transparent 42%),linear-gradient(145deg,#0d1739,#070c22 70%)}
+.photoOnly.theme-show .brandWelcome{background:linear-gradient(135deg,#bc8cff16,#5ce9ed12);border:1px solid #bceaff40;box-shadow:0 20px 60px #02061955,inset 0 0 80px #66d6ff0b;border-radius:30px;min-height:355px;padding:30px 20px;margin:20px auto 20px;width:100%;max-width:520px;transform:rotate(-1deg)}
+.photoOnly.theme-show .brandWelcome img{max-height:200px;margin:0 0 28px;filter:drop-shadow(0 0 30px #b18bff88)}
+.photoOnly.theme-show h2{font-weight:950;letter-spacing:-.05em}
+.photoOnly.theme-show .brandWelcome:before{background:radial-gradient(ellipse,#cc75ff60,transparent 68%);filter:blur(22px)}
+.photoOnly.theme-show #homeOptions button{background:linear-gradient(110deg,#39e2d5,#98e3f0);box-shadow:0 0 0 5px #65eff018,0 10px 45px #2bd5df44}
+.photoOnly.theme-show .rotating-copy{color:#e3befc}
+@media(max-height:760px){.photoOnly .brandWelcome{min-height:320px;padding-top:12px}.photoOnly .brandWelcome img{max-height:120px!important;margin-bottom:15px!important}.photoOnly .brandWelcome h2{font-size:32px}.photoOnly #homeOptions button{min-height:70px}.photoOnly.theme-show .brandWelcome{min-height:280px}}
+@media(prefers-reduced-motion:reduce){.photoOnly .brandWelcome,.photoOnly #homeOptions button{transition:none}}
 </style></head><body>
 <main class="shell"><div class="shell-effects" id="shellEffects" aria-hidden="true"></div><header><span>◇ IDELUX AI EXPERIENCE</span><button class="settings" onclick="openSettings()">⚙ Evento</button></header><div id="audioHero"><h1>Imagina algo.<br>Vamos a crearlo.</h1></div><div id="brandWelcome" class="brandWelcome"><img id="brandLogo" class="hidden" alt="Logo del evento"><h2 id="brandTitle">Tu momento. Tu foto.</h2><p id="brandSubtitle">Captura un recuerdo especial</p><div class="rotating-copy" id="rotatingCopy">Toma tu foto</div></div><p id="status">Soy Luxi. ¡Hablemos y creemos un recuerdo increíble!</p><div class="orb" id="orb"></div><div class="grid" id="homeOptions"><button onclick="openCamera('')">📷 Tomar foto</button></div><p id="eventIndicator" class="small"></p><button id="voiceBtn" class="primary big" onclick="toggleVoice()">🎙 Hablar con Luxi</button><p class="small">Compatible con celulares y Windows. Requiere permiso de micrófono y cámara.</p></main>
 <section class="panel" id="photoPanel"><div class="inner"><h2>📸 Tu foto con IA</h2><label for="cameraList">Cámara</label><select id="cameraList" onchange="restartCamera()"><option value="">Cámara predeterminada</option></select><div class="actions"><button onclick="detectCameras()">🔎 Detectar cámaras USB</button><button onclick="restartCamera()">↻ Reconectar cámara</button></div><div class="viewer"><video id="video" autoplay muted playsinline></video><img id="preview" class="hidden" alt="Fotografía original"><img id="result" class="hidden" alt="Resultado generado por IA"><div class="count" id="countdown" aria-live="assertive">3</div></div><div id="photoStatus" class="status"><p>Prepara tu mejor sonrisa</p></div><input id="photoPrompt" type="hidden"><div class="tabs hidden" id="photoTabs"><button onclick="showImage('original')">Original</button><button class="primary" id="finalTab" onclick="showImage('final')">Resultado IA</button></div><div id="aiChoices" class="hidden"><p>Elige cómo quieres transformar tu foto:</p><div id="aiChoiceButtons" class="actions"></div></div><div class="actions"><button id="takeBtn" onclick="countdownCapture()">📷 Tomar foto (3s)</button><button id="editBtn" class="primary" onclick="generateImage()" disabled>✨ Crear con IA</button><button id="saveBtn" onclick="saveImage()" disabled>↓ Guardar foto</button><button onclick="closeCamera()">Cerrar</button></div><div id="sharePanel" class="hidden"><h3>Tu recuerdo está listo</h3><div class="actions"><button id="qrBtn" onclick="makeQR()">▦ Obtener QR</button><button id="printBtn" onclick="printPhoto()">🖨 Imprimir foto</button></div><div id="qrOutput" class="hidden"><img id="qrImage" alt="QR para descargar tu fotografía"><p id="qrStatus"></p><a id="photoLink" target="_blank" rel="noopener" style="color:#65f6dc">Abrir fotografía</a></div><p class="small">Para QR entre dispositivos, configura almacenamiento Vercel Blob. La impresión usa el diálogo de Windows o del navegador.</p></div></div></section><div id="printZone"><img id="printImage" alt="Foto para imprimir"></div>

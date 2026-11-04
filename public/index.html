@@ -102,7 +102,7 @@ async function syncEvents(){
   remoteEventNames=new Set(Object.keys(remote));
   const local=JSON.parse(localStorage.getItem('ideluxEvents')||'{}');
   const pending=JSON.parse(localStorage.getItem('ideluxPendingProfiles')||'{}');
-  const merged={...remote,...local,...pending};
+  const merged={...local,...remote,...pending};
   // Nunca borrar los eventos locales; mantener explícitamente las ediciones pendientes.
   profiles=merged;
   const selected=localStorage.getItem('ideluxCurrent');

@@ -264,10 +264,11 @@ function aviso(m){const a=$('aviso');a.textContent=m;a.classList.add('ver');clea
 
 /* ===================== Almacenamiento ===================== */
 let memoria=[],usarDB=true,sigId=1;
+const conTiempo=(p,ms=2500)=>Promise.race([p,new Promise((_,mal)=>setTimeout(()=>mal(new Error('tiempo')),ms))]);
 function abrirDB(){return new Promise((ok,mal)=>{const p=indexedDB.open('libro-recuerdos-v2',1);p.onupgradeneeded=()=>p.result.createObjectStore('r',{keyPath:'id',autoIncrement:true});p.onsuccess=()=>ok(p.result);p.onerror=()=>mal(p.error);});}
-async function dbAgregar(r){if(usarDB){try{const db=await abrirDB();return await new Promise((ok,mal)=>{const tx=db.transaction('r','readwrite');const q=tx.objectStore('r').add(r);q.onsuccess=()=>ok(q.result);tx.onerror=()=>mal(tx.error);});}catch(e){usarDB=false;}}r.id=sigId++;memoria.push(r);return r.id;}
-async function dbTodos(){if(usarDB){try{const db=await abrirDB();return await new Promise((ok,mal)=>{const q=db.transaction('r').objectStore('r').getAll();q.onsuccess=()=>ok(q.result.sort((a,b)=>a.id-b.id));q.onerror=()=>mal(q.error);});}catch(e){usarDB=false;}}return memoria.slice();}
-async function dbVaciar(){memoria=[];if(usarDB){try{const db=await abrirDB();await new Promise(ok=>{const tx=db.transaction('r','readwrite');tx.objectStore('r').clear();tx.oncomplete=ok;tx.onerror=ok;});}catch(e){usarDB=false;}}}
+async function dbAgregar(r){delete r.id;if(usarDB){try{const db=await conTiempo(abrirDB());return await conTiempo(new Promise((ok,mal)=>{const tx=db.transaction('r','readwrite');const q=tx.objectStore('r').add(r);q.onsuccess=()=>ok(q.result);tx.onerror=()=>mal(tx.error);}));}catch(e){usarDB=false;}}r.id=sigId++;memoria.push(r);return r.id;}
+async function dbTodos(){if(usarDB){try{const db=await conTiempo(abrirDB());return await conTiempo(new Promise((ok,mal)=>{const q=db.transaction('r').objectStore('r').getAll();q.onsuccess=()=>ok(q.result.sort((a,b)=>a.id-b.id));q.onerror=()=>mal(q.error);}));}catch(e){usarDB=false;}}return memoria.slice();}
+async function dbVaciar(){memoria=[];if(usarDB){try{const db=await conTiempo(abrirDB());await conTiempo(new Promise(ok=>{const tx=db.transaction('r','readwrite');tx.objectStore('r').clear();tx.oncomplete=ok;tx.onerror=ok;}));}catch(e){usarDB=false;}}}
 
 async function reducirImagen(blob,max=1600){
   let bmp;try{bmp=await createImageBitmap(blob,{imageOrientation:'from-image'});}catch(e){bmp=await createImageBitmap(blob);}
@@ -442,15 +443,31 @@ async function elegir(){
   $('sub-hoja').textContent=angosto()||document.body.classList.contains('solo-control')?'Con el dedo, el lápiz o el mouse. Aparece en vivo en el libro.':'Con el dedo, el lápiz o el mouse. Aparece en vivo en el libro →';
   $('escritura').classList.add('visible');$('escritura').setAttribute('aria-hidden','false');
   requestAnimationFrame(tamLienzo);
-  try{const blob=await reducirImagen(f.blob);elegida={blob,clave:f.clave,fecha:Date.now()};emitir({tipo:'nuevo',imagen:blob,fecha:elegida.fecha,papel});enviarTrazos();}
-  catch(e){aviso('No pude abrir esa foto');cerrarHoja();}
+  const sel={clave:f.clave,fecha:Date.now(),blob:null};
+  sel.lista=reducirImagen(f.blob).catch(()=>f.blob).then(b=>{sel.blob=b||f.blob;return sel.blob;});
+  elegida=sel;
+  const blob=await sel.lista;
+  if(elegida!==sel)return;
+  emitir({tipo:'nuevo',imagen:blob,fecha:sel.fecha,papel});enviarTrazos();
 }
+let guardando=false;
 async function guardar(){
-  if(!elegida)return;
+  if(!elegida||guardando)return;
   if(!trazos.some(t=>!t.borrar)){zona.classList.remove('temblar');void zona.offsetWidth;zona.classList.add('temblar');aviso('Escribe algo antes de guardar');return;}
-  await dbAgregar({imagen:elegida.blob,trazos:JSON.parse(JSON.stringify(trazos)),ancho:lienzo.clientWidth,papel,fecha:elegida.fecha,clave:elegida.clave});
-  usadas.add(elegida.clave);elegida=null;cerrarHoja();emitir({tipo:'guardado'});aviso('Recuerdo guardado ✓');
-  if(angosto()&&!document.body.classList.contains('solo-control'))verPestana('libro');
+  guardando=true;const b=$('btn-guardar');b.textContent='Guardando…';b.disabled=true;
+  try{
+    const sel=elegida,imagen=await sel.lista;
+    const registro={imagen,trazos:JSON.parse(JSON.stringify(trazos)),ancho:lienzo.clientWidth,papel,fecha:sel.fecha,clave:sel.clave};
+    // 1) se cierra la hoja y el recuerdo pasa al libro de inmediato
+    elegida=null;usadas.add(sel.clave);cerrarHoja();
+    registro.id='t'+Date.now();
+    emitir({tipo:'guardado',registro});
+    aviso('Recuerdo guardado en el libro ✓');
+    if(angosto()&&!document.body.classList.contains('solo-control'))verPestana('libro');
+    // 2) se guarda en el navegador sin hacer esperar
+    dbAgregar({...registro,id:undefined}).catch(()=>{});
+  }catch(e){console.error(e);aviso('No se pudo guardar, inténtalo otra vez');}
+  finally{guardando=false;b.textContent='Guardar en el libro';b.disabled=false;}
 }
 function cancelar(){if(elegida)emitir({tipo:'cancelar'});elegida=null;cerrarHoja();}
 function cerrarHoja(){escribiendo=false;trazo=null;$('escritura').classList.remove('visible');$('escritura').setAttribute('aria-hidden','true');pintarCarrusel();}
@@ -502,7 +519,7 @@ function manejar(m){
       if(borrador.papel!==m.papel){borrador.papel=m.papel;document.querySelectorAll('#libro canvas.tinta[data-borrador]').forEach(cv=>cv.parentNode.style.background=m.papel);
         if(idx===dobles().length-1&&!ocupado)izq.firstChild&&(izq.firstChild.style.background=m.papel);}
       pintarTintas('#libro canvas.tinta[data-borrador]');break;
-    case 'guardado':enCola(async()=>{await cargarRecuerdos();if(borrador)URL.revokeObjectURL(borrador.url);borrador=null;const u=dobles().length-1;if(idx===u)pintar();else await voltear(u);});break;
+    case 'guardado':enCola(async()=>{const r=m.registro;if(r&&!recuerdos.some(x=>x.id===r.id))recuerdos.push({id:r.id,trazos:r.trazos||[],ancho:r.ancho,papel:r.papel,fecha:r.fecha,url:URL.createObjectURL(r.imagen)});else if(!r)await cargarRecuerdos();if(borrador)URL.revokeObjectURL(borrador.url);borrador=null;const u=dobles().length-1;if(idx===u)pintar();else await voltear(u);});break;
     case 'cancelar':enCola(async()=>{if(!borrador)return;if(idx===dobles().length-1)await voltear(idx-1);URL.revokeObjectURL(borrador.url);borrador=null;pintar();});break;
     case 'recargar':enCola(async()=>{await cargarRecuerdos();borrador=null;idx=0;pintar();});break;
   }
@@ -568,11 +585,15 @@ $('btn-ajustes-cam').onclick=()=>{$('ajustes-cam').hidden=!$('ajustes-cam').hidd
 
 let detector=null,stream=null,camActiva=false,historial=[],ultimoGesto=0,ultimaDir=null,ultimoFrame=-1;
 async function abrirCamara(){
-  if(stream)stream.getTracks().forEach(t=>t.stop());
-  const base={width:{ideal:640},height:{ideal:480}};
-  try{stream=await navigator.mediaDevices.getUserMedia({video:aj.camaraId?{...base,deviceId:{exact:aj.camaraId}}:base,audio:false});}
-  catch(e){if(aj.camaraId&&e.name!=='NotAllowedError'){aj.camaraId='';guardarAj();return abrirCamara();}throw e;}
-  video.srcObject=stream;await video.play();
+  if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;
+  const intentos=[];
+  if(aj.camaraId)intentos.push({video:{deviceId:{exact:aj.camaraId}},audio:false});
+  intentos.push({video:{width:{ideal:640},height:{ideal:480}},audio:false},{video:true,audio:false});
+  let ultimo;
+  for(const c of intentos){try{stream=await navigator.mediaDevices.getUserMedia(c);break;}catch(e){ultimo=e;if(e.name==='NotAllowedError'||e.name==='SecurityError')break;}}
+  if(!stream)throw ultimo||new Error('Sin cámara');
+  video.muted=true;video.setAttribute('playsinline','');video.setAttribute('autoplay','');
+  video.srcObject=stream;try{await video.play();}catch(e){}
   const sel=$('sel-camara'),cams=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
   sel.replaceChildren(...cams.map((c,i)=>new Option(c.label||`Cámara ${i+1}`,c.deviceId)));
   const id=stream.getVideoTracks()[0]?.getSettings().deviceId;if(id)sel.value=id;
@@ -587,20 +608,29 @@ function detenerCamara(){camActiva=false;if(stream)stream.getTracks().forEach(t=
 async function activarCamara(){
   if(camActiva){detenerCamara();return;}
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){aviso('Este navegador no permite usar la cámara aquí');return;}
-  caja.hidden=false;estadoCam.textContent='Pidiendo permiso de cámara…';$('btn-camara').disabled=true;
+  if(!window.isSecureContext){aviso('La cámara necesita una dirección https');return;}
+  caja.hidden=false;caja.classList.remove('mini');estadoCam.textContent='Pidiendo permiso de cámara… pulsa «Permitir»';$('btn-camara').disabled=true;
   try{
-    await abrirCamara();camActiva=true;
-    $('btn-camara').textContent='Apagar cámara';$('btn-camara').classList.add('activo');$('btn-ajustes-cam').hidden=false;
-    estadoCam.textContent='Cargando detector de manos…';
-    if(!detector)detector=await crearDetector();
-    estadoCam.textContent='Listo · mueve la mano ← →';aj.auto=true;guardarAj();
+    await abrirCamara();
   }catch(e){
-    console.error(e);
-    const msg=EN_MARCO?'La cámara no está permitida en esta vista web. Usa la versión descargada.':(e.name==='NotAllowedError'?'Sin permiso de cámara':'No se pudo iniciar la cámara o los gestos (¿hay internet?)');
-    estadoCam.textContent=msg;aviso(msg);
-    if(!camActiva){setTimeout(()=>{if(!camActiva)caja.hidden=true;},4000);}
-  }finally{$('btn-camara').disabled=false;}
+    console.error(e);$('btn-camara').disabled=false;
+    let msg;
+    if(EN_MARCO)msg='Esta vista no deja usar la cámara. Abre el link directo en Chrome, Edge o Safari.';
+    else if(e.name==='NotAllowedError'||e.name==='SecurityError')msg=enAppInterna()?'Este visor no deja usar la cámara: abre el link en Chrome, Edge o Safari.':'La cámara quedó bloqueada. Toca el candado junto a la dirección, permite «Cámara» y recarga la página.';
+    else if(e.name==='NotFoundError'||e.name==='OverconstrainedError')msg='No encontré ninguna cámara conectada.';
+    else if(e.name==='NotReadableError')msg='La cámara está ocupada por otra app (Zoom, Teams…). Ciérrala y vuelve a intentar.';
+    else msg='No se pudo abrir la cámara ('+(e.name||e.message)+').';
+    estadoCam.textContent=msg;aviso(msg);setTimeout(()=>{if(!camActiva)caja.hidden=true;},6000);return;
+  }
+  camActiva=true;caja.classList.toggle('mini',!aj.verVideo);$('btn-camara').disabled=false;
+  $('btn-camara').textContent='Apagar cámara';$('btn-camara').classList.add('activo');$('btn-ajustes-cam').hidden=false;
+  aj.auto=true;guardarAj();
+  try{
+    if(!detector){estadoCam.textContent='Cámara lista · cargando detector de manos…';detector=await crearDetector();}
+    estadoCam.textContent='Listo · mueve la mano ← →';
+  }catch(e){console.error(e);estadoCam.textContent='Cámara activa, pero no cargó el detector de manos (revisa internet).';}
 }
+function enAppInterna(){const u=navigator.userAgent||'';return /\bwv\b|FBAN|FBAV|Instagram|Line\/|; ?Claude|Claude\//i.test(u)||(/iPhone|iPad/.test(u)&&!/Safari\//.test(u));}
 $('btn-camara').onclick=activarCamara;
 
 const VENTANA=450,ESPERA=1100,RETORNO=1700;

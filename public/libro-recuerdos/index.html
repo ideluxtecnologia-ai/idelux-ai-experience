@@ -150,6 +150,7 @@ body.modo-libro.quieto{cursor:none}
 
 #aviso{position:fixed;left:50%;top:16px;transform:translate(-50%,-180%);z-index:60;background:#2b241d;color:#f1e6d2;padding:10px 22px;border-radius:999px;font-size:18px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .4s;max-width:92vw;text-align:center}
 #aviso.ver{transform:translate(-50%,0)}
+#aviso.largo{border-radius:14px;white-space:normal;width:min(560px,92vw);font-size:17px}
 
 @media (max-width:900px){
   header{gap:8px;padding:12px 14px}
@@ -264,7 +265,7 @@ let EN_MARCO = false; try { EN_MARCO = window.self !== window.top; } catch (e) {
 if (MODO_LIBRO) document.body.classList.add('modo-libro');
 if (EN_MARCO) $('btn-ventana').hidden = true;
 
-function aviso(m){const a=$('aviso');a.textContent=m;a.classList.add('ver');clearTimeout(aviso.t);aviso.t=setTimeout(()=>a.classList.remove('ver'),3200);}
+function aviso(m){const a=$('aviso');a.textContent=m;a.classList.toggle('largo',m.length>60);a.classList.add('ver');clearTimeout(aviso.t);aviso.t=setTimeout(()=>a.classList.remove('ver'),m.length>60?9000:3200);}
 
 /* ===================== Almacenamiento ===================== */
 let memoria=[],usarDB=true,sigId=1;
@@ -627,7 +628,8 @@ async function activarCamara(){
     console.error(e);$('btn-camara').disabled=false;
     let msg;
     if(EN_MARCO)msg='Esta vista no deja usar la cámara. Abre el link directo en Chrome, Edge o Safari.';
-    else if(e.name==='NotAllowedError'||e.name==='SecurityError')msg=enAppInterna()?'Este visor no deja usar la cámara: abre el link en Chrome, Edge o Safari.':'La cámara quedó bloqueada. Toca el candado junto a la dirección, permite «Cámara» y recarga la página.';
+    else if(e.name==='NotAllowedError'||e.name==='SecurityError'){msg='Sin permiso de cámara. Si abriste el link dentro de la app Claude, ese visor no deja usar la cámara: ábrelo en Chrome o Edge (ya copié el link, solo pégalo). Si ya estás en Chrome, toca el candado junto a la dirección, permite «Cámara» y recarga.';
+      try{navigator.clipboard.writeText(location.href.split('#')[0]);}catch(_){}}
     else if(e.name==='NotFoundError'||e.name==='OverconstrainedError')msg='No encontré ninguna cámara conectada.';
     else if(e.name==='NotReadableError')msg='La cámara está ocupada por otra app (Zoom, Teams…). Ciérrala y vuelve a intentar.';
     else msg='No se pudo abrir la cámara ('+(e.name||e.message)+').';

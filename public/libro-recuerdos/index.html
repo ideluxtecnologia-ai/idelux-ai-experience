@@ -80,7 +80,7 @@ body.solo-control #panel-libro{display:none}
 .papeles{display:flex;gap:6px;align-items:center;font-size:14px}
 .papeles span{opacity:.6;margin-right:2px}
 #zona{position:relative;flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(60,40,20,.10);box-shadow:inset 0 2px 10px rgba(0,0,0,.08)}
-#hoja-escribir{position:relative;flex:none;background:var(--papel,var(--crema));border-radius:3px;box-shadow:0 10px 30px rgba(60,40,20,.28);touch-action:none}
+#hoja-escribir{position:relative;flex:none;background:var(--crema);border-radius:3px;box-shadow:0 10px 30px rgba(60,40,20,.28);touch-action:none}
 #hoja-escribir::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,rgba(0,0,0,.18),rgba(0,0,0,.04) 7%,transparent 14%)}
 #area{position:absolute;left:8%;top:9%;width:84%;height:80%;outline:1.5px dashed rgba(60,40,20,.22);outline-offset:2px;border-radius:2px;overflow:hidden;cursor:crosshair;touch-action:none}
 #lienzo{display:block;width:100%;height:100%;touch-action:none}
@@ -225,6 +225,16 @@ body.modo-libro.quieto{cursor:none}
 .fila-foto{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .fila-foto img{width:64px;height:64px;object-fit:cover;border-radius:6px;border:3px solid #fff}
 @media (max-width:600px){.temas{grid-template-columns:minmax(0,1fr)}.tema-card{flex-direction:row;align-items:center}.tema-card .mini{width:90px;flex:none;height:60px}}
+/* Hojas oscuras y hojas con imagen */
+.contenido.oscura{color:#f1ece2}
+.contenido.oscura .fecha,.contenido.oscura .num,.contenido.oscura p,.contenido.oscura .firma{color:#e9e2d4}
+.contenido.oscura.portada-der h1,:root[data-tema] .contenido.oscura.portada-der h1{color:var(--acento)}
+.contenido.oscura .en-vivo{color:#ff9b8a}
+#hoja-escribir.oscura #area{outline-color:rgba(255,255,255,.3)}
+#hoja-escribir.oscura #pista,#hoja-escribir.oscura .num-escribir{color:#fff}
+.muestra.tex{background-size:cover!important;background-position:center!important}
+.tex-item{position:relative;display:inline-flex}
+.tex-item .quitar{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;border:0;background:#c0392b;color:#fff;font-size:14px;line-height:22px;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 /* Decoración: nieve (navideña) y confeti (llamativa) */
 #nieve{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
 .copo{position:absolute;top:-6vh;color:#fff;line-height:1;animation:caer linear infinite;will-change:transform}
@@ -405,11 +415,14 @@ body.modo-libro.quieto{cursor:none}
 
     <h3 class="sec">Hojas</h3>
     <div class="campo"><span>Color de las hojas del libro</span><div class="muestras" id="d-hoja"></div><small>También es el color con que parte la hoja para escribir.</small></div>
+    <div class="campo"><span>Tus hojas (imágenes)</span><div class="muestras" id="d-tex"></div>
+      <div class="fila-foto"><button class="btn" id="d-tex-btn">Cargar hoja…</button></div><small>Sube una imagen JPG o PNG (papel antiguo, textura, diseño navideño…). Se usa como fondo de las hojas.</small></div>
     <div class="campo"><span>Color de tinta al escribir</span><div class="muestras" id="d-tinta"></div></div>
     <div class="acciones-c"><button class="btn" id="d-restablecer">Volver a los colores y textos del estilo</button></div>
   </div>
 </div>
 <input type="file" id="in-portada" accept="image/*" hidden>
+<input type="file" id="in-textura" accept="image/*" multiple hidden>
 
 <div id="aviso" role="status"></div>
 
@@ -695,7 +708,7 @@ $('carrusel').addEventListener('wheel',e=>{if(ruedaOff)return;const d=Math.abs(e
 
 /* ===================== Hoja para escribir a mano ===================== */
 const COLORES=[['#5b5b5b','Gris'],['#1f1f1f','Negro'],['#2f55a4','Azul'],['#b8322a','Rojo'],['#2e7d4f','Verde'],['#7a4a2a','Café'],['#6a3d9a','Morado'],['#e07b24','Naranjo'],['#d4568f','Rosado']];
-const PAPELES=[['#f5ecd7','Crema'],['#fbfaf6','Blanco'],['#f6e1e1','Rosa'],['#e1ecf4','Celeste'],['#e4efdf','Verde']];
+const PAPELES=[['#f5ecd7','Crema'],['#f1dfa8','Dorado claro'],['#ffffff','Blanco'],['#1b1b1d','Negro'],['#f8e3e6','Rosa'],['#e3eef7','Celeste'],['#e3f1e6','Menta']];
 const GROSORES=[[2.5,'Fino'],[5,'Medio'],[10,'Grueso']];
 const lienzo=$('lienzo'),zona=$('zona');
 let ctxL=null,trazos=[],trazo=null,idPuntero=null,hayLapiz=false;
@@ -713,15 +726,34 @@ const TEMAS={
            mini:'linear-gradient(135deg,#2a0b63,#7b2ff7 45%,#ff3d7f 80%,#ff9a3d)',miniTapa:'linear-gradient(135deg,#ff3d7f,#7b2ff7)',miniAcento:'#ffd23f'},
 };
 const TAPAS=[['#1d5a3a','Verde pino'],['#9b1c24','Rojo navidad'],['#6e3829','Cuero'],['#1f3a5f','Azul noche'],['#2b2b2b','Negro'],['#e0a526','Dorado'],['#ff3d7f','Fucsia'],['#7b2ff7','Violeta']];
-const HOJAS=[['#fbf4e6','Marfil'],['#f5ecd7','Crema'],['#fffdf8','Blanco'],['#f8e3e6','Rosa'],['#e3eef7','Celeste'],['#e3f1e6','Menta'],['#fbf1c7','Amarillo'],['#ecebe7','Gris perla']];
+const HOJAS=[['#f5ecd7','Crema'],['#f1dfa8','Dorado claro'],['#ffffff','Blanco'],['#1b1b1d','Negro'],['#fbf4e6','Marfil'],['#f8e3e6','Rosa'],['#e3eef7','Celeste'],['#e3f1e6','Menta'],['#ecebe7','Gris perla'],['#1f2a44','Azul noche']];
 const DISENO_BASE={tema:'navidad',sub:null,titulo:null,frase:null,firma:'',tapa:null,hoja:null,tinta:null,instr:true};
 let diseno={...DISENO_BASE},fotoPortada=null,fotoPortadaUrl=null;
 try{Object.assign(diseno,JSON.parse(localStorage.getItem('libro-diseno')||'{}'));}catch(e){}
 if(!TEMAS[diseno.tema])diseno.tema='navidad';
 const T=()=>TEMAS[diseno.tema];
 const txt=k=>(diseno[k]!=null&&diseno[k]!=='')?diseno[k]:T()[k];
-const hojaPred=()=>diseno.hoja||T().hoja;
-const tintaPred=()=>diseno.tinta||'#5b5b5b';
+const hojaPred=()=>{const h=diseno.hoja;return h&&(!h.startsWith('tex:')||texturas.some(t=>'tex:'+t.id===h))?h:T().hoja;};
+// Hojas cargadas por la persona (imágenes): {id,nombre,blob,oscura}
+let texturas=[];const texUrl=new Map();
+function ponerTexturas(lista){texUrl.forEach(u=>URL.revokeObjectURL(u));texUrl.clear();texturas=(lista||[]).filter(t=>t&&t.blob);texturas.forEach(t=>texUrl.set(t.id,URL.createObjectURL(t.blob)));}
+const texDe=v=>typeof v==='string'&&v.startsWith('tex:')?texturas.find(t=>t.id===v.slice(4)):null;
+function esOscura(v){
+  const t=texDe(v);if(t)return !!t.oscura;if(!v||v[0]!=='#')return false;
+  let h=v.slice(1);if(h.length===3)h=[...h].map(x=>x+x).join('');const n=parseInt(h,16);
+  const r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255;return(.2126*r+.7152*g+.0722*b)<.42;
+}
+// Viste un elemento con el color o la imagen de hoja, y ajusta el color del texto
+function vestirHoja(elx,v){
+  if(!elx)return;const t=texDe(v),base=T().hoja;
+  elx.style.background=t?`${t.oscura?'#1b1b1d':base} url("${texUrl.get(t.id)}") center/cover no-repeat`:(v||'');
+  elx.classList.toggle('oscura',esOscura(v||hojaPred()));
+}
+const tintaPred=(p)=>diseno.tinta||(esOscura(p||hojaPred())?'#ece6da':'#5b5b5b');
+async function analizarTextura(blob){
+  const bmp=await createImageBitmap(blob),c=document.createElement('canvas');c.width=c.height=24;const g=c.getContext('2d');g.drawImage(bmp,0,0,24,24);
+  const d=g.getImageData(0,0,24,24).data;let s=0;for(let i=0;i<d.length;i+=4)s+=.2126*d[i]+.7152*d[i+1]+.0722*d[i+2];return s/(d.length/4)/255<.42;
+}
 
 function adornoEl(){
   const a=el('div','adorno');
@@ -747,24 +779,25 @@ function aplicarDiseno(repintar=true){
   else{raiz.style.removeProperty('--tapa-c');raiz.style.removeProperty('--tapa-c2');}
   if(diseno.hoja)raiz.style.setProperty('--hoja',diseno.hoja);else raiz.style.removeProperty('--hoja');
   decorar();
-  if(typeof escribiendo!=='undefined'&&!escribiendo){papel=hojaPred();herr.color=tintaPred();rehacerPapeles();try{$('escritura').style.setProperty('--papel',papel);marcar();}catch(e){}}
+  if(typeof escribiendo!=='undefined'&&!escribiendo){papel=hojaPred();herr.color=tintaPred(papel);rehacerPapeles();try{vestirEscritura();marcar();}catch(e){}}
   if(repintar&&typeof enCola==='function')enCola(async()=>pintar());
 }
 function guardarDiseno(){
   try{localStorage.setItem('libro-diseno',JSON.stringify(diseno));}catch(e){}
   cfgGuardar('diseno',diseno);
-  if(canal)try{canal.postMessage({tipo:'diseno',diseno,foto:fotoPortada});}catch(e){}
+  if(canal)try{canal.postMessage({tipo:'diseno',diseno,foto:fotoPortada,texturas});}catch(e){}
 }
 function ponerFotoPortada(blob){if(fotoPortadaUrl)URL.revokeObjectURL(fotoPortadaUrl);fotoPortada=blob||null;fotoPortadaUrl=blob?URL.createObjectURL(blob):null;}
 
 // --- ventana de Diseño
-function muestrasDe(cont,lista,valor,auto,alElegir){
+function muestrasDe(cont,lista,valor,auto,alElegir,conTex){
   cont.replaceChildren();
   const a=document.createElement('button');a.className='muestra auto';a.style.background=auto;a.textContent='Del estilo';a.setAttribute('aria-pressed',String(!valor));a.onclick=()=>alElegir(null);cont.appendChild(a);
   for(const[c,n]of lista){const b=document.createElement('button');b.className='muestra';b.style.setProperty('--c',c);b.title=n;b.setAttribute('aria-label',n);b.setAttribute('aria-pressed',String(valor===c));b.onclick=()=>alElegir(c);cont.appendChild(b);}
+  if(conTex)for(const t of texturas){const b=document.createElement('button');b.className='muestra tex';b.style.background=`url("${texUrl.get(t.id)}")`;b.title=t.nombre;b.setAttribute('aria-label','Hoja '+t.nombre);b.setAttribute('aria-pressed',String(valor==='tex:'+t.id));b.onclick=()=>alElegir('tex:'+t.id);cont.appendChild(b);}
   const l=document.createElement('label');l.className='muestra libre';l.title='Otro color';
-  const enLista=valor&&lista.some(([c])=>c===valor);l.setAttribute('aria-pressed',String(!!valor&&!enLista));
-  const inp=document.createElement('input');inp.type='color';inp.value=valor||'#888888';inp.setAttribute('aria-label','Otro color');
+  const enLista=valor&&(lista.some(([c])=>c===valor)||String(valor).startsWith('tex:'));l.setAttribute('aria-pressed',String(!!valor&&!enLista));
+  const inp=document.createElement('input');inp.type='color';inp.value=valor&&valor[0]==='#'?valor:'#888888';inp.setAttribute('aria-label','Otro color');
   inp.addEventListener('change',e=>alElegir(e.target.value));l.appendChild(inp);cont.appendChild(l);
 }
 function pintarDiseno(){
@@ -775,8 +808,13 @@ function pintarDiseno(){
   for(const k of['sub','titulo','frase','firma']){const i=$('d-'+k);if(document.activeElement!==i)i.value=diseno[k]||'';i.placeholder=k==='firma'?'Ej.: Familia Soto · Navidad 2026':T()[k];}
   $('d-instr').checked=diseno.instr!==false;
   muestrasDe($('d-tapa'),TAPAS,diseno.tapa,T().miniTapa,c=>{diseno.tapa=c;cambio();});
-  muestrasDe($('d-hoja'),HOJAS,diseno.hoja,T().hoja,c=>{diseno.hoja=c;cambio();});
-  muestrasDe($('d-tinta'),COLORES,diseno.tinta,'#5b5b5b',c=>{diseno.tinta=c;cambio();});
+  muestrasDe($('d-hoja'),HOJAS,diseno.hoja,T().hoja,c=>{diseno.hoja=c;cambio();},true);
+  $('d-tex').replaceChildren(...texturas.map(t=>{const w=document.createElement('span');w.className='tex-item';
+    const b=document.createElement('button');b.className='muestra tex';b.style.background=`url("${texUrl.get(t.id)}")`;b.title='Usar «'+t.nombre+'»';b.setAttribute('aria-pressed',String(diseno.hoja==='tex:'+t.id));b.onclick=()=>{diseno.hoja='tex:'+t.id;cambio();};
+    const x=document.createElement('button');x.className='quitar';x.textContent='×';x.title='Borrar esta hoja';x.setAttribute('aria-label','Borrar hoja '+t.nombre);x.onclick=()=>borrarTextura(t.id);
+    w.append(b,x);return w;}));
+  if(!texturas.length)$('d-tex').append(Object.assign(document.createElement('small'),{textContent:'Todavía no has cargado hojas.'}));
+  muestrasDe($('d-tinta'),COLORES,diseno.tinta,tintaPred(),c=>{diseno.tinta=c;cambio();});
   $('d-foto-prev').hidden=!fotoPortadaUrl;if(fotoPortadaUrl)$('d-foto-prev').src=fotoPortadaUrl;$('d-foto-quitar').hidden=!fotoPortadaUrl;
   $('d-foto-btn').textContent=fotoPortadaUrl?'Cambiar foto…':'Elegir foto…';
 }
@@ -786,6 +824,16 @@ for(const k of['sub','titulo','frase','firma'])$('d-'+k).addEventListener('input
 $('d-instr').onchange=e=>{diseno.instr=e.target.checked;cambio();};
 $('d-restablecer').onclick=()=>{diseno={...DISENO_BASE,tema:diseno.tema};ponerFotoPortada(null);cfgGuardar('fotoPortada',undefined);cambio();aviso('Diseño del estilo «'+T().nombre+'» restablecido');};
 $('d-foto-btn').onclick=()=>$('in-portada').click();
+$('d-tex-btn').onclick=()=>$('in-textura').click();
+$('in-textura').onchange=async e=>{
+  const fs=[...e.target.files];e.target.value='';let ultima=null;
+  for(const f of fs){try{const blob=await reducirImagen(f,1600);const t={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),nombre:f.name.replace(/\.[^.]+$/,'').slice(0,40),blob,oscura:await analizarTextura(blob)};texturas.push(t);texUrl.set(t.id,URL.createObjectURL(blob));ultima=t;}catch(err){aviso('No pude abrir «'+f.name+'»');}}
+  if(!ultima)return;await cfgGuardar('texturas',texturas);diseno.hoja='tex:'+ultima.id;cambio();aviso(fs.length>1?'Hojas cargadas':'Hoja cargada: ya se usa en el libro');
+};
+async function borrarTextura(id){
+  const i=texturas.findIndex(t=>t.id===id);if(i<0)return;URL.revokeObjectURL(texUrl.get(id));texUrl.delete(id);texturas.splice(i,1);
+  if(diseno.hoja==='tex:'+id)diseno.hoja=null;await cfgGuardar('texturas',texturas);cambio();
+}
 $('in-portada').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const b=await reducirImagen(f,1400);ponerFotoPortada(b);await cfgGuardar('fotoPortada',b);cambio();}catch(err){aviso('No pude abrir esa foto');}};
 $('d-foto-quitar').onclick=async()=>{ponerFotoPortada(null);await cfgGuardar('fotoPortada',undefined);cambio();};
 function abrirDiseno(){pintarDiseno();$('diseno').hidden=false;}
@@ -794,17 +842,22 @@ $('btn-diseno').onclick=abrirDiseno;$('diseno-cerrar').onclick=cerrarDiseno;
 $('diseno').addEventListener('click',e=>{if(e.target.id==='diseno')cerrarDiseno();});
 function rehacerPapeles(){
   const cont=$('papeles');cont.querySelectorAll('.papel-m').forEach(b=>b.remove());
-  const lista=[[hojaPred(),'Del diseño'],...PAPELES.filter(([c])=>c!==hojaPred())];
-  lista.forEach(([c,n])=>{const b=document.createElement('button');b.className='muestra papel-m';b.style.setProperty('--c',c);b.title='Hoja '+n;b.setAttribute('aria-label','Hoja '+n);b.dataset.p=c;b.onclick=()=>ponerPapel(c);cont.appendChild(b);});
+  const lista=[[hojaPred(),'Del diseño'],...PAPELES.filter(([c])=>c!==hojaPred()),...texturas.map(t=>['tex:'+t.id,t.nombre]).filter(([c])=>c!==hojaPred())];
+  lista.forEach(([c,n])=>{const b=document.createElement('button');b.className='muestra papel-m';const t=texDe(c);
+    if(t){b.classList.add('tex');b.style.background=`url("${texUrl.get(t.id)}")`;}else b.style.setProperty('--c',c);
+    b.title='Hoja '+n;b.setAttribute('aria-label','Hoja '+n);b.dataset.p=c;b.onclick=()=>ponerPapel(c);cont.appendChild(b);});
 }
+function vestirEscritura(){const t=texDe(papel);$('escritura').style.setProperty('--papel',t?(t.oscura?'#1b1b1d':'#f5ecd7'):papel);vestirHoja($('hoja-escribir'),papel);}
 
 COLORES.forEach(([c,n])=>{const b=document.createElement('button');b.className='muestra';b.style.setProperty('--c',c);b.title=n;b.setAttribute('aria-label',n);b.dataset.c=c;b.onclick=()=>ponerColor(c);$('colores').appendChild(b);});
 {const l=document.createElement('label');l.className='muestra libre';l.title='Otro color';l.innerHTML='<input type="color" id="color-libre" value="#5b5b5b" aria-label="Otro color">';$('colores').appendChild(l);
  l.querySelector('input').addEventListener('input',e=>ponerColor(e.target.value,true));}
-papel=hojaPred();herr.color=tintaPred();rehacerPapeles();
+papel=hojaPred();herr.color=tintaPred(papel);rehacerPapeles();
 GROSORES.forEach(([t,n])=>{const b=document.createElement('button');b.className='grosor';b.title=n;b.setAttribute('aria-label',n);b.dataset.t=t;const d=Math.max(4,t*1.6);b.innerHTML=`<i style="width:${d}px;height:${d}px"></i>`;b.onclick=()=>{herr.tam=t;marcar();};$('grosores').appendChild(b);});
 function ponerColor(c,libre){herr.color=c;herr.borrar=false;marcar();}
-function ponerPapel(c){papel=c;$('escritura').style.setProperty('--papel',c);marcar();enviarTrazos();}
+function ponerPapel(c){const antes=esOscura(papel);papel=c;vestirEscritura();
+  if(!diseno.tinta&&esOscura(c)!==antes&&(herr.color==='#5b5b5b'||herr.color==='#ece6da'))herr.color=tintaPred(c);  // tinta legible en hojas oscuras
+  marcar();enviarTrazos();}
 function marcar(){
   document.querySelectorAll('#colores .muestra[data-c]').forEach(b=>b.setAttribute('aria-pressed',String(!herr.borrar&&b.dataset.c===herr.color)));
   const enLista=COLORES.some(([c])=>c===herr.color);document.querySelector('#colores .libre').setAttribute('aria-pressed',String(!herr.borrar&&!enLista));
@@ -858,7 +911,7 @@ function enviarTrazos(){if(!elegida||envioPendiente)return;envioPendiente=true;s
 
 async function elegir(){
   if(escribiendo||!fotos.length)return;const f=fotos[actual];escribiendo=true;
-  $('foto-hoja').src=urlDe(actual);trazos=[];trazo=null;herr.borrar=false;papel=hojaPred();$('escritura').style.setProperty('--papel',papel);marcar();
+  $('foto-hoja').src=urlDe(actual);trazos=[];trazo=null;herr.borrar=false;papel=hojaPred();herr.color=diseno.tinta||(COLORES.some(([c])=>c===herr.color)&&herr.color!=='#5b5b5b'?herr.color:tintaPred(papel));vestirEscritura();marcar();
   $('sub-hoja').textContent=angosto()||document.body.classList.contains('solo-control')?'Con el dedo, el lápiz o el mouse. Aparece en vivo en el libro.':'Con el dedo, el lápiz o el mouse. Aparece en vivo en el libro →';
   $('escritura').classList.add('visible');$('escritura').setAttribute('aria-hidden','false');
   requestAnimationFrame(tamLienzo);
@@ -899,17 +952,17 @@ let recuerdos=[],borrador=null,idx=0,ocupado=false,cadena=Promise.resolve();
 const dobles=()=>{const l=[{tipo:'portada'},...recuerdos.map(r=>({tipo:'recuerdo',r}))];if(borrador)l.push({tipo:'borrador',r:borrador});return l;};
 function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}
 function crearIzq(d,n){
-  if(d.tipo==='portada'){const c=el('div','contenido portada-izq');
+  if(d.tipo==='portada'){const c=el('div','contenido portada-izq');vestirHoja(c,hojaPred());
     if(fotoPortadaUrl){const m=el('div','marco portada-foto'),img=new Image();img.src=fotoPortadaUrl;img.alt='';m.append(el('div','cinta'),img);c.append(m);}else c.append(adornoEl());
     c.append(el('p',null,txt('frase')));return c;}
   const c=el('div','contenido lado-foto'),m=el('div','marco'),img=new Image();img.src=d.r.url;img.alt='';m.append(el('div','cinta'),img);
-  c.style.background=d.r.papel||'';c.append(m,el('div','fecha',fechaTxt(d.r.fecha)),el('div','num',String(n*2)));return c;
+  vestirHoja(c,d.r.papel||hojaPred());c.append(m,el('div','fecha',fechaTxt(d.r.fecha)),el('div','num',String(n*2)));return c;
 }
 function crearDer(d,n){
-  if(d.tipo==='portada'){const c=el('div','contenido portada-der'),h=el('h1');h.append(el('span',null,txt('sub')),txt('titulo'));
+  if(d.tipo==='portada'){const c=el('div','contenido portada-der'),h=el('h1');vestirHoja(c,hojaPred());h.append(el('span',null,txt('sub')),txt('titulo'));
     c.append(h,el('div','linea'));if(diseno.firma)c.append(el('div','firma',diseno.firma));
     if(diseno.instr!==false)c.append(el('p',null,'Mano a la izquierda: avanzas. Mano a la derecha: vuelves.'));return c;}
-  const c=el('div','contenido lado-texto');c.style.background=d.r.papel||'';
+  const c=el('div','contenido lado-texto');vestirHoja(c,d.r.papel||hojaPred());
   const cv=el('canvas','tinta');cv._datos=d.r;if(d.tipo==='borrador'){cv.dataset.borrador='1';c.append(el('div','en-vivo','escribiendo'));}
   c.append(cv,el('div','num',String(n*2+1)));return c;
 }
@@ -973,12 +1026,12 @@ function manejar(m){
     case 'nuevo':enCola(()=>{if(borrador)URL.revokeObjectURL(borrador.url);borrador={url:URL.createObjectURL(m.imagen),v:2,trazos:[],ancho:1,papel:m.papel,fecha:m.fecha};return voltear(dobles().length-1);});break;
     case 'trazos':
       if(!borrador)break;borrador.trazos=m.trazos;borrador.ancho=m.ancho;borrador.v=m.v;
-      if(borrador.papel!==m.papel){borrador.papel=m.papel;document.querySelectorAll('#libro canvas.tinta[data-borrador]').forEach(cv=>cv.parentNode.style.background=m.papel);
-        if(idx===dobles().length-1&&!ocupado)izq.firstChild&&(izq.firstChild.style.background=m.papel);}
+      if(borrador.papel!==m.papel){borrador.papel=m.papel;document.querySelectorAll('#libro canvas.tinta[data-borrador]').forEach(cv=>vestirHoja(cv.parentNode,m.papel));
+        if(idx===dobles().length-1&&!ocupado)vestirHoja(izq.firstChild,m.papel);}
       pintarTintas('#libro canvas.tinta[data-borrador]');break;
     case 'guardado':enCola(async()=>{if(cerrado)await abrirLibro();const r=m.registro;if(r&&!recuerdos.some(x=>x.id===r.id))recuerdos.push({id:r.id,v:r.v,trazos:r.trazos||[],ancho:r.ancho,papel:r.papel,fecha:r.fecha,url:URL.createObjectURL(r.imagen)});else if(!r)await cargarRecuerdos();if(borrador)URL.revokeObjectURL(borrador.url);borrador=null;const u=dobles().length-1;if(idx===u)pintar();else await voltear(u);});break;
     case 'cancelar':enCola(async()=>{if(!borrador)return;if(idx===dobles().length-1)await voltear(idx-1);URL.revokeObjectURL(borrador.url);borrador=null;pintar();});break;
-    case 'diseno':diseno={...DISENO_BASE,...m.diseno};ponerFotoPortada(m.foto||null);aplicarDiseno();break;
+    case 'diseno':diseno={...DISENO_BASE,...m.diseno};ponerFotoPortada(m.foto||null);if(m.texturas)ponerTexturas(m.texturas);aplicarDiseno();break;
     case 'recargar':enCola(async()=>{await cargarRecuerdos();borrador=null;idx=0;cerrado=false;libro.classList.remove('cerrado','cerrando');pintar();});break;
   }
 }
@@ -1141,7 +1194,7 @@ const ro=new ResizeObserver(tamLibro);ro.observe($('escena'));
 const roCab=new ResizeObserver(()=>document.documentElement.style.setProperty('--alto-cab',document.querySelector('header').offsetHeight+'px'));roCab.observe(document.querySelector('header'));
 aplicarDiseno(false);marcar();
 (async()=>{
-  try{const g=await cfgLeer('diseno');if(g){diseno={...DISENO_BASE,...g};aplicarDiseno(false);try{localStorage.setItem('libro-diseno',JSON.stringify(diseno));}catch(e){}}const fp=await cfgLeer('fotoPortada');if(fp)ponerFotoPortada(fp);}catch(e){}
+  try{const g=await cfgLeer('diseno');if(g){diseno={...DISENO_BASE,...g};aplicarDiseno(false);try{localStorage.setItem('libro-diseno',JSON.stringify(diseno));}catch(e){}}const fp=await cfgLeer('fotoPortada');if(fp)ponerFotoPortada(fp);const tx=await cfgLeer('texturas');if(tx){ponerTexturas(tx);aplicarDiseno(false);}}catch(e){}
   try{await cargarRecuerdos();usadas=new Set((await dbTodos()).map(r=>r.clave));}catch(e){}
   pintar();tamLibro();
   if(MODO_LIBRO){if(canal)canal.postMessage({tipo:'pedir-estado'});if(aj.auto&&!EN_MARCO)activarCamara();return;}

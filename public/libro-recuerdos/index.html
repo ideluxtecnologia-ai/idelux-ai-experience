@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Libro de recuerdos</title>
+<script>try{var d=JSON.parse(localStorage.getItem('libro-diseno')||'{}');document.documentElement.dataset.tema=d.tema||'navidad';}catch(e){document.documentElement.dataset.tema='navidad';}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Mountains+of+Christmas:wght@700&family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
 <style>
 /*
 VOICE: tierno, íntimo, una sala oscura con un libro iluminado.
@@ -15,22 +16,36 @@ PICTURE: el libro abierto, foto con cinta a la izquierda, trazos a mano a la der
 COLOUR and TYPE: noche cálida, papel crema sólido, tinta gris, cuero burdeos; Cormorant Garamond.
 LAYOUT: control a la izquierda, libro a la derecha; pestañas en teléfono; #libro = solo el libro.
 */
-:root{color-scheme:dark;--crema:#f5ecd7;--tinta:#2b2520;--acento:#d0904a;--claro:#efe6d6}
+:root{color-scheme:dark;--crema:#f5ecd7;--tinta:#2b2520;
+  /* Sobrio */
+  --fondo:radial-gradient(ellipse at 60% 35%,#3a2f26,#141110 75%);--acento:#d0904a;--acento-txt:#1b1712;--claro:#efe6d6;
+  --mesa:#efe4cc;--hoja:#f5ecd7;--tapa-c:#6e3829;--tapa-c2:#3d1d16;--tapa-texto:#f0d9a8;--panel:#241e19;
+  --fuente:"Cormorant Garamond",Georgia,serif;--fuente-titulo:"Cormorant Garamond",Georgia,serif;--peso-titulo:600}
+:root[data-tema=navidad]{
+  --fondo:radial-gradient(ellipse at 50% 22%,#93202a 0%,#4d0c13 48%,#1b0609 100%);--acento:#e8b84a;--acento-txt:#3a0a0e;--claro:#fbf1de;
+  --mesa:#efe3cb;--hoja:#fbf4e6;--tapa-c:#1d5a3a;--tapa-c2:#0c2d1c;--tapa-texto:#f2d27a;--panel:#2c0d11;
+  --fuente-titulo:"Mountains of Christmas","Cormorant Garamond",Georgia,serif;--peso-titulo:700}
+:root[data-tema=llamativa]{
+  --fondo:linear-gradient(135deg,#2a0b63 0%,#7b2ff7 42%,#ff3d7f 76%,#ff9a3d 100%);--acento:#ffd23f;--acento-txt:#2a0b63;--claro:#ffffff;
+  --mesa:#ffe6f2;--hoja:#fffafc;--tapa-c:#ff3d7f;--tapa-c2:#7b2ff7;--tapa-texto:#fff6c9;--panel:#2a0b63;
+  --fuente:"Fredoka","Trebuchet MS","Segoe UI",sans-serif;--fuente-titulo:"Fredoka","Trebuchet MS","Segoe UI",sans-serif;--peso-titulo:600}
+:root[data-tema=llamativa] .btn{border-radius:14px}
+:root[data-tema=llamativa] #libro::before{border-radius:14px}
 *{box-sizing:border-box;margin:0;padding:0;min-width:0}
 [hidden]{display:none!important}
 html,body{height:100%;overflow:hidden}
-body{background:radial-gradient(ellipse at 60% 35%,#3a2f26,#141110 75%);color:var(--claro);font:17px/1.5 "Cormorant Garamond",Georgia,serif;-webkit-tap-highlight-color:transparent}
+body{background:var(--fondo);background-attachment:fixed;color:var(--claro);font:17px/1.5 var(--fuente);-webkit-tap-highlight-color:transparent}
 button{font:inherit;cursor:pointer;color:inherit}
 button:disabled{opacity:.35;cursor:default}
 .btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.22);padding:8px 16px;border-radius:999px;font-size:17px;min-height:44px;transition:background .2s;white-space:nowrap}
 .btn:hover:not(:disabled){background:rgba(255,255,255,.16)}
 .btn:focus-visible,.flecha:focus-visible,.muestra:focus-visible{outline:2px solid var(--acento);outline-offset:2px}
-.btn.principal{background:var(--acento);border-color:var(--acento);color:#1b1712;font-weight:600}
+.btn.principal{background:var(--acento);border-color:var(--acento);color:var(--acento-txt);font-weight:600}
 .btn.peligro{border-color:#c0624a;color:#f3b5a5}
 .btn.activo{background:#7ed491;border-color:#7ed491;color:#10240f}
 
 header{position:relative;z-index:6;display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px max(2vw,14px)}
-header h1{font-size:28px;font-weight:600;line-height:1.05;flex:1;white-space:nowrap}
+header h1{font-family:var(--fuente-titulo);font-size:30px;font-weight:var(--peso-titulo);line-height:1.05;flex:1;white-space:nowrap}
 .pestanas{display:none;gap:6px;width:100%}
 .pestanas .btn{flex:1}
 .pestanas .btn[aria-selected=true]{background:var(--claro);color:#1b1712}
@@ -55,12 +70,12 @@ body.solo-control #panel-libro{display:none}
 .nota{font-size:14px;opacity:.45;margin-top:6px}
 
 /* Hoja para escribir a mano */
-#escritura{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;background:#efe4cc;color:var(--tinta);transform:translateY(105%);transition:transform .6s cubic-bezier(.2,.85,.25,1),background-color .3s;box-shadow:0 -20px 60px rgba(0,0,0,.5)}
+#escritura{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;background:var(--mesa);color:var(--tinta);transform:translateY(105%);transition:transform .6s cubic-bezier(.2,.85,.25,1),background-color .3s;box-shadow:0 -20px 60px rgba(0,0,0,.5)}
 #escritura.visible{transform:none}
 .cabecera{display:flex;align-items:center;gap:14px;padding:12px 16px 6px;flex-wrap:wrap}
 .cabecera img{width:58px;height:58px;flex:none;object-fit:cover;background:#fff;padding:4px 4px 10px;box-shadow:0 4px 12px rgba(0,0,0,.22);transform:rotate(-4deg)}
 .cabecera .tit{flex:1;min-width:150px}
-.cabecera h2{font-size:24px;font-weight:600;font-style:italic;line-height:1.05}
+.cabecera h2{font-family:var(--fuente-titulo);font-size:24px;font-weight:var(--peso-titulo);font-style:italic;line-height:1.05}
 .cabecera p{font-size:15px;opacity:.6}
 .papeles{display:flex;gap:6px;align-items:center;font-size:14px}
 .papeles span{opacity:.6;margin-right:2px}
@@ -85,7 +100,7 @@ body.solo-control #panel-libro{display:none}
 .herr[aria-pressed=true]{background:#2b2520;color:#f5ecd7}
 .sep{flex:1}
 #escritura .btn{color:var(--tinta);border-color:rgba(0,0,0,.2);background:rgba(0,0,0,.04)}
-#escritura .btn.principal{color:#1b1712;background:var(--acento);border-color:var(--acento)}
+#escritura .btn.principal{color:var(--acento-txt);background:var(--acento);border-color:var(--acento)}
 @keyframes temblar{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 .temblar{animation:temblar .3s 2}
 
@@ -96,14 +111,14 @@ body.solo-control #panel-libro{display:none}
 #libro.cerrado{transform:translateX(-25%)}
 #libro.cerrado::before{left:48.7%}
 #libro.cerrado .pagina.izq,#libro.cerrando .pagina.izq{visibility:hidden}
-.tapa{position:absolute;inset:0;background:linear-gradient(135deg,#6e3829,#3d1d16);color:#f0d9a8;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4%;border-radius:0 5px 5px 0;box-shadow:inset 8px 0 14px rgba(0,0,0,.35)}
-.tapa::before{content:"";position:absolute;inset:7%;border:2px solid rgba(240,217,168,.4);border-radius:4px}
-.tapa h1{font-size:calc(var(--alto)*.1);font-weight:600;line-height:1}
+.tapa{position:absolute;inset:0;background:linear-gradient(135deg,var(--tapa-c),var(--tapa-c2));color:var(--tapa-texto);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4%;border-radius:0 5px 5px 0;box-shadow:inset 8px 0 14px rgba(0,0,0,.35)}
+.tapa::before{content:"";position:absolute;inset:7%;border:2px solid color-mix(in srgb,var(--tapa-texto) 45%,transparent);border-radius:4px}
+.tapa h1{font-family:var(--fuente-titulo);font-size:calc(var(--alto)*.1);font-weight:var(--peso-titulo);line-height:1}
 .tapa h1 span{display:block;font-style:italic;font-weight:500;font-size:.55em;opacity:.8}
 .tapa .adorno{font-size:calc(var(--alto)*.07);opacity:.6}
 .tapa p{font-size:calc(var(--alto)*.03);opacity:.65;max-width:70%;line-height:1.35}
-#libro::before{content:"";position:absolute;inset:-1.6% -1.3%;border-radius:8px;background:linear-gradient(135deg,#5b2e22,#3d1d16);box-shadow:0 34px 80px rgba(0,0,0,.7)}
-.pagina,.cara{position:absolute;top:0;width:50%;height:100%;overflow:hidden;background:var(--crema)}
+#libro::before{content:"";position:absolute;inset:-1.6% -1.3%;border-radius:8px;background:linear-gradient(135deg,color-mix(in srgb,var(--tapa-c) 80%,#000),color-mix(in srgb,var(--tapa-c2) 85%,#000));box-shadow:0 34px 80px rgba(0,0,0,.7)}
+.pagina,.cara{position:absolute;top:0;width:50%;height:100%;overflow:hidden;background:var(--hoja)}
 .pagina.izq{left:0;border-radius:3px 0 0 3px}.pagina.der{left:50%;border-radius:0 3px 3px 0}
 .izq::after,.cara.reverso::after,.hoja.atras .cara.frente::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to left,rgba(0,0,0,.22),rgba(0,0,0,.05) 7%,transparent 14%)}
 .der::after,.hoja.adelante .cara.frente::after,.hoja.atras .cara.reverso::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,rgba(0,0,0,.22),rgba(0,0,0,.05) 7%,transparent 14%)}
@@ -112,7 +127,7 @@ body.solo-control #panel-libro{display:none}
 .hoja .cara{left:0;width:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .hoja .cara.reverso{transform:rotateY(180deg)}
 .sombra{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.35),rgba(0,0,0,0));opacity:0;pointer-events:none;z-index:3}
-.contenido{position:absolute;inset:0;padding:8% 9%;display:flex;flex-direction:column;background:var(--crema)}
+.contenido{position:absolute;inset:0;padding:8% 9%;display:flex;flex-direction:column;background:var(--hoja)}
 .lado-foto{align-items:center;justify-content:center;gap:4%}
 .marco{background:#fff;padding:3.2% 3.2% 11%;box-shadow:0 8px 24px rgba(60,40,20,.3);transform:rotate(-2deg);max-width:94%;position:relative}
 .marco img{display:block;max-width:100%;max-height:calc(var(--alto)*.6);object-fit:contain}
@@ -127,7 +142,7 @@ canvas.tinta{position:absolute;left:8%;right:8%;top:9%;bottom:11%;width:84%;heig
 .portada-izq,.portada-der{align-items:center;justify-content:center;text-align:center;gap:5%}
 .portada-izq .adorno{font-size:calc(var(--alto)*.09);opacity:.35}
 .portada-izq p{font-style:italic;font-size:calc(var(--alto)*.042);opacity:.7;max-width:84%;line-height:1.3}
-.portada-der h1{font-size:calc(var(--alto)*.105);font-weight:600;line-height:1}
+.portada-der h1{font-family:var(--fuente-titulo);font-size:calc(var(--alto)*.105);font-weight:var(--peso-titulo);line-height:1}
 .portada-der h1 span{display:block;font-style:italic;font-weight:500;font-size:.55em;opacity:.7}
 .portada-der .linea{width:30%;height:1px;background:currentColor;opacity:.3}
 .portada-der p{font-size:calc(var(--alto)*.036);opacity:.6;max-width:84%;line-height:1.35}
@@ -162,22 +177,22 @@ body.modo-libro.quieto .nav-libro{opacity:0}
 body.modo-libro.quieto{cursor:none}
 
 /* Configuración de carpeta */
-#config{position:fixed;inset:0;z-index:55;background:rgba(10,8,6,.6);display:flex;align-items:center;justify-content:center;padding:16px}
-#config .caja{width:min(520px,100%);max-height:100%;overflow:auto;background:#241e19;border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
-#config h2{font-size:30px;font-weight:600;line-height:1.05;margin-bottom:4px}
-#config .sub{opacity:.65;font-size:16px;margin-bottom:18px}
+.modal{position:fixed;inset:0;z-index:55;background:rgba(10,8,6,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal .caja{width:min(520px,100%);max-height:100%;overflow:auto;background:var(--panel);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.modal h2{font-family:var(--fuente-titulo);font-size:30px;font-weight:var(--peso-titulo);line-height:1.05;margin-bottom:4px}
+.modal .sub{opacity:.65;font-size:16px;margin-bottom:18px}
 .carpeta-actual{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);margin-bottom:14px}
 .carpeta-actual .ico{width:44px;height:36px;flex:none;border-radius:4px 4px 6px 6px;background:linear-gradient(#e2b25f,#c98d3a);position:relative}
 .carpeta-actual .ico::before{content:"";position:absolute;left:0;top:-6px;width:45%;height:8px;border-radius:4px 4px 0 0;background:#c98d3a}
 .carpeta-actual b{display:block;font-size:20px;line-height:1.2;overflow-wrap:anywhere}
 .carpeta-actual span{font-size:15px;opacity:.6}
-#config .acciones-c{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-#config label.fila{display:flex;align-items:center;gap:10px;font-size:17px;margin:6px 0 14px;cursor:pointer}
-#config label.fila input{width:20px;height:20px}
-#config .nota-c{font-size:14px;opacity:.55;line-height:1.45;border-top:1px solid rgba(255,255,255,.1);padding-top:12px;margin-top:6px}
-#config .cerrar{float:right;margin:-6px -6px 0 0;width:44px;height:44px;border-radius:50%;background:transparent;border:0;font-size:26px;opacity:.7}
+.modal .acciones-c{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.modal label.fila{display:flex;align-items:center;gap:10px;font-size:17px;margin:6px 0 14px;cursor:pointer}
+.modal label.fila input{width:20px;height:20px}
+.modal .nota-c{font-size:14px;opacity:.55;line-height:1.45;border-top:1px solid rgba(255,255,255,.1);padding-top:12px;margin-top:6px}
+.modal .cerrar{float:right;margin:-6px -6px 0 0;width:44px;height:44px;border-radius:50%;background:transparent;border:0;font-size:26px;opacity:.7}
 .agente-c{border-top:1px solid rgba(255,255,255,.1);margin-top:14px;padding-top:16px}
-.agente-c h3{font-size:22px;font-weight:600;line-height:1.1}
+.agente-c h3{font-family:var(--fuente-titulo);font-size:22px;font-weight:var(--peso-titulo);line-height:1.1}
 .agente-c>p{opacity:.65;font-size:16px;margin:2px 0 12px}
 .dato{display:flex;flex-direction:column;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,.06);margin-bottom:8px}
 .dato span{font-size:14px;opacity:.6}
@@ -185,8 +200,48 @@ body.modo-libro.quieto{cursor:none}
 .dato b.clave{font-size:34px;letter-spacing:.12em;color:#f0c27a}
 #pedir-carpeta .dato{background:rgba(255,255,255,.08);min-width:min(420px,90%);text-align:center}
 #pedir-carpeta{position:absolute;inset:34px 0 150px;z-index:21;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:20px}
-#pedir-carpeta h3{font-size:30px;font-weight:500;font-style:italic;line-height:1.1}
+#pedir-carpeta h3{font-family:var(--fuente-titulo);font-size:30px;font-weight:var(--peso-titulo);font-style:italic;line-height:1.1}
 #pedir-carpeta p{opacity:.65;max-width:420px}
+/* Diseño */
+.modal .caja.ancha{width:min(640px,100%)}
+.modal h3.sec{font-family:var(--fuente-titulo);font-weight:var(--peso-titulo);font-size:23px;line-height:1.1;margin:22px 0 10px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1)}
+.temas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tema-card{display:flex;flex-direction:column;gap:8px;padding:8px;border-radius:12px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);text-align:left}
+.tema-card[aria-pressed=true]{border-color:var(--acento);box-shadow:0 0 0 2px color-mix(in srgb,var(--acento) 40%,transparent)}
+.tema-card .mini{height:74px;border-radius:8px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.tema-card .mini i{display:block;width:30%;height:72%;border-radius:2px 5px 5px 2px;box-shadow:0 6px 12px rgba(0,0,0,.4)}
+.tema-card .mini b{position:absolute;left:8px;bottom:6px;width:22px;height:8px;border-radius:4px}
+.tema-card span{font-size:17px;font-weight:600;line-height:1.1}
+.tema-card small{font-size:13px;opacity:.6;line-height:1.2}
+.campo{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;font-size:16px}
+.campo>span{opacity:.75}
+.campo small{opacity:.5;font-size:14px}
+.campo input,.campo textarea{font:inherit;font-size:17px;color:inherit;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:10px 12px;resize:vertical}
+.campo input:focus,.campo textarea:focus{outline:2px solid var(--acento)}
+.muestras{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.muestras .muestra{border-color:rgba(255,255,255,.3)}
+.muestras .muestra[aria-pressed=true]{box-shadow:0 0 0 3px var(--panel),0 0 0 5px var(--acento)}
+.muestra.auto{width:auto;padding:0 12px;border-radius:999px;font-size:14px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.8);font-weight:600;min-height:34px}
+.fila-foto{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.fila-foto img{width:64px;height:64px;object-fit:cover;border-radius:6px;border:3px solid #fff}
+@media (max-width:600px){.temas{grid-template-columns:minmax(0,1fr)}.tema-card{flex-direction:row;align-items:center}.tema-card .mini{width:90px;flex:none;height:60px}}
+/* Decoración: nieve (navideña) y confeti (llamativa) */
+#nieve{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.copo{position:absolute;top:-6vh;color:#fff;line-height:1;animation:caer linear infinite;will-change:transform}
+.copo.confeti{border-radius:2px}
+@keyframes caer{to{transform:translate3d(5vw,112vh,0) rotate(260deg)}}
+@media (prefers-reduced-motion:reduce){#nieve{display:none}}
+.adorno svg{width:calc(var(--alto)*.2);height:auto;display:block}
+.portada-izq .adorno:has(svg),.tapa .adorno:has(svg){opacity:1}
+.tapa .adorno svg{filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.marco.portada-foto{transform:rotate(1.5deg)}
+.marco.portada-foto img{max-height:calc(var(--alto)*.42)}
+.tapa .foto-tapa{width:42%;aspect-ratio:1;object-fit:cover;border:4px solid color-mix(in srgb,var(--tapa-texto) 70%,#fff);border-radius:4px;box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.firma{font-style:italic;font-size:calc(var(--alto)*.034);opacity:.75}
+.tapa .firma{opacity:.85}
+:root[data-tema=llamativa] .portada-der h1,:root[data-tema=llamativa] .portada-izq .adorno{color:#7b2ff7}
+:root[data-tema=navidad] .portada-der h1{color:#8c1c24}
+:root[data-tema=navidad] .portada-der .linea{background:#c99a2e;opacity:.8;height:2px}
 #aviso{position:fixed;left:50%;top:16px;transform:translate(-50%,-180%);z-index:60;background:#2b241d;color:#f1e6d2;padding:10px 22px;border-radius:999px;font-size:18px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .4s;max-width:92vw;text-align:center}
 #aviso.ver{transform:translate(-50%,0)}
 #aviso.largo{border-radius:14px;white-space:normal;width:min(560px,92vw);font-size:17px}
@@ -215,8 +270,10 @@ body.modo-libro.quieto{cursor:none}
 </head>
 <body>
 
+<div id="nieve" aria-hidden="true"></div>
 <header>
   <h1>Libro de recuerdos</h1>
+  <button class="btn" id="btn-diseno">Diseño</button>
   <button class="btn" id="btn-config">Carpeta de fotos</button>
   <button class="btn" id="btn-ventana">Libro en otra pantalla ↗</button>
   <button class="btn peligro" id="btn-vaciar">Vaciar libro</button>
@@ -300,7 +357,7 @@ body.modo-libro.quieto{cursor:none}
   </section>
 </main>
 
-<div id="config" hidden role="dialog" aria-modal="true" aria-labelledby="config-titulo">
+<div id="config" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="config-titulo">
   <div class="caja">
     <button class="cerrar" id="config-cerrar" aria-label="Cerrar">×</button>
     <h2 id="config-titulo">Carpeta de fotos</h2>
@@ -327,6 +384,32 @@ body.modo-libro.quieto{cursor:none}
     </div>
   </div>
 </div>
+
+<div id="diseno" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="diseno-titulo">
+  <div class="caja ancha">
+    <button class="cerrar" id="diseno-cerrar" aria-label="Cerrar">×</button>
+    <h2 id="diseno-titulo">Diseño</h2>
+    <p class="sub">Los cambios se ven al instante en el libro y en la otra pantalla.</p>
+    <h3 class="sec" style="border:0;padding-top:0;margin-top:6px">Estilo</h3>
+    <div class="temas" id="temas"></div>
+
+    <h3 class="sec">Portada</h3>
+    <label class="campo"><span>Texto sobre el título</span><input id="d-sub" maxlength="40"></label>
+    <label class="campo"><span>Título</span><input id="d-titulo" maxlength="40"></label>
+    <label class="campo"><span>Frase de bienvenida</span><textarea id="d-frase" rows="2" maxlength="180"></textarea></label>
+    <label class="campo"><span>Firma o dedicatoria (opcional)</span><input id="d-firma" maxlength="60" placeholder="Ej.: Familia Soto · Navidad 2026"></label>
+    <div class="campo"><span>Color de la tapa</span><div class="muestras" id="d-tapa"></div></div>
+    <div class="campo"><span>Foto de portada (opcional)</span>
+      <div class="fila-foto"><img id="d-foto-prev" alt="" hidden><button class="btn" id="d-foto-btn">Elegir foto…</button><button class="btn peligro" id="d-foto-quitar" hidden>Quitar foto</button></div></div>
+    <label class="fila"><input type="checkbox" id="d-instr"> Mostrar cómo usar los gestos en la portada</label>
+
+    <h3 class="sec">Hojas</h3>
+    <div class="campo"><span>Color de las hojas del libro</span><div class="muestras" id="d-hoja"></div><small>También es el color con que parte la hoja para escribir.</small></div>
+    <div class="campo"><span>Color de tinta al escribir</span><div class="muestras" id="d-tinta"></div></div>
+    <div class="acciones-c"><button class="btn" id="d-restablecer">Volver a los colores y textos del estilo</button></div>
+  </div>
+</div>
+<input type="file" id="in-portada" accept="image/*" hidden>
 
 <div id="aviso" role="status"></div>
 
@@ -619,10 +702,106 @@ let ctxL=null,trazos=[],trazo=null,idPuntero=null,hayLapiz=false;
 const herr={color:'#5b5b5b',tam:5,borrar:false};
 let papel='#f5ecd7';
 
+/* ===================== Diseño (estilos, portada, hojas) ===================== */
+const ACEBO='<svg viewBox="0 0 120 70" aria-hidden="true"><path d="M60 38C48 12 30 22 10 10c8 14 2 24 10 34 14-8 26 4 40-6z" fill="#2e7d4f"/><path d="M60 38c12-26 30-16 50-28-8 14-2 24-10 34-14-8-26 4-40-6z" fill="#246b42"/><path d="M60 38C50 22 36 26 24 22" stroke="#174d2f" stroke-width="2" fill="none"/><path d="M60 38c10-16 24-12 36-16" stroke="#174d2f" stroke-width="2" fill="none"/><circle cx="54" cy="44" r="8" fill="#c62832"/><circle cx="66" cy="44" r="8" fill="#b01f2a"/><circle cx="60" cy="53" r="8" fill="#d63a43"/><circle cx="57" cy="41" r="2.5" fill="#fff" opacity=".6"/></svg>';
+const TEMAS={
+  navidad:{nombre:'Navideña',desc:'Rojo, verde y dorado, con nieve',hoja:'#fbf4e6',tapa:'#1d5a3a',sub:'Libro de',titulo:'Recuerdos',frase:'Cada foto guarda un momento de esta Navidad. Cada página, lo que sentimos al vivirlo.',
+           mini:'radial-gradient(ellipse at 50% 20%,#93202a,#3a0a0e)',miniTapa:'linear-gradient(135deg,#1d5a3a,#0c2d1c)',miniAcento:'#e8b84a'},
+  sobrio:{nombre:'Sobrio',desc:'Cuero y papel, tonos cálidos',hoja:'#f5ecd7',tapa:'#6e3829',sub:'Libro de',titulo:'Recuerdos',frase:'Cada foto guarda un momento. Cada página, lo que sentimos al vivirlo.',
+           mini:'radial-gradient(ellipse at 60% 35%,#3a2f26,#141110)',miniTapa:'linear-gradient(135deg,#6e3829,#3d1d16)',miniAcento:'#d0904a'},
+  llamativa:{nombre:'Llamativa',desc:'Colores vivos y confeti',hoja:'#fffafc',tapa:'#ff3d7f',sub:'Nuestro libro de',titulo:'Recuerdos',frase:'Fotos, risas y momentos que no queremos olvidar.',
+           mini:'linear-gradient(135deg,#2a0b63,#7b2ff7 45%,#ff3d7f 80%,#ff9a3d)',miniTapa:'linear-gradient(135deg,#ff3d7f,#7b2ff7)',miniAcento:'#ffd23f'},
+};
+const TAPAS=[['#1d5a3a','Verde pino'],['#9b1c24','Rojo navidad'],['#6e3829','Cuero'],['#1f3a5f','Azul noche'],['#2b2b2b','Negro'],['#e0a526','Dorado'],['#ff3d7f','Fucsia'],['#7b2ff7','Violeta']];
+const HOJAS=[['#fbf4e6','Marfil'],['#f5ecd7','Crema'],['#fffdf8','Blanco'],['#f8e3e6','Rosa'],['#e3eef7','Celeste'],['#e3f1e6','Menta'],['#fbf1c7','Amarillo'],['#ecebe7','Gris perla']];
+const DISENO_BASE={tema:'navidad',sub:null,titulo:null,frase:null,firma:'',tapa:null,hoja:null,tinta:null,instr:true};
+let diseno={...DISENO_BASE},fotoPortada=null,fotoPortadaUrl=null;
+try{Object.assign(diseno,JSON.parse(localStorage.getItem('libro-diseno')||'{}'));}catch(e){}
+if(!TEMAS[diseno.tema])diseno.tema='navidad';
+const T=()=>TEMAS[diseno.tema];
+const txt=k=>(diseno[k]!=null&&diseno[k]!=='')?diseno[k]:T()[k];
+const hojaPred=()=>diseno.hoja||T().hoja;
+const tintaPred=()=>diseno.tinta||'#5b5b5b';
+
+function adornoEl(){
+  const a=el('div','adorno');
+  if(diseno.tema==='navidad')a.innerHTML=ACEBO;else a.textContent=diseno.tema==='llamativa'?'✺':'❦';
+  return a;
+}
+function decorar(){
+  const n=$('nieve');n.replaceChildren();
+  if(diseno.tema==='sobrio'||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  const nav=diseno.tema==='navidad',cols=['#ffd23f','#2ee6d6','#ffffff','#ff9a3d','#b8f35a'];
+  for(let i=0;i<(nav?48:36);i++){
+    const c=document.createElement('span');c.className='copo'+(nav?'':' confeti');
+    const r=(k)=>((Math.sin(i*12.9898+k*78.233)*43758.5453)%1+1)%1; // pseudoaleatorio estable
+    c.style.left=(r(1)*100)+'%';c.style.animationDuration=(nav?9:12)+r(2)*12+'s';c.style.animationDelay=-(r(3)*20)+'s';
+    if(nav){c.textContent=i%4?'•':'❄';c.style.fontSize=(i%4?6+r(4)*8:12+r(4)*10)+'px';c.style.opacity=.35+r(5)*.5;}
+    else{const t=5+r(4)*7;c.style.width=t+'px';c.style.height=(t*1.6)+'px';c.style.background=cols[i%cols.length];c.style.opacity=.35+r(5)*.4;}
+    n.appendChild(c);
+  }
+}
+function aplicarDiseno(repintar=true){
+  const raiz=document.documentElement;raiz.dataset.tema=diseno.tema;
+  if(diseno.tapa){raiz.style.setProperty('--tapa-c',diseno.tapa);raiz.style.setProperty('--tapa-c2',`color-mix(in srgb,${diseno.tapa} 55%,#000)`);}
+  else{raiz.style.removeProperty('--tapa-c');raiz.style.removeProperty('--tapa-c2');}
+  if(diseno.hoja)raiz.style.setProperty('--hoja',diseno.hoja);else raiz.style.removeProperty('--hoja');
+  decorar();
+  if(typeof escribiendo!=='undefined'&&!escribiendo){papel=hojaPred();herr.color=tintaPred();rehacerPapeles();try{$('escritura').style.setProperty('--papel',papel);marcar();}catch(e){}}
+  if(repintar&&typeof enCola==='function')enCola(async()=>pintar());
+}
+function guardarDiseno(){
+  try{localStorage.setItem('libro-diseno',JSON.stringify(diseno));}catch(e){}
+  cfgGuardar('diseno',diseno);
+  if(canal)try{canal.postMessage({tipo:'diseno',diseno,foto:fotoPortada});}catch(e){}
+}
+function ponerFotoPortada(blob){if(fotoPortadaUrl)URL.revokeObjectURL(fotoPortadaUrl);fotoPortada=blob||null;fotoPortadaUrl=blob?URL.createObjectURL(blob):null;}
+
+// --- ventana de Diseño
+function muestrasDe(cont,lista,valor,auto,alElegir){
+  cont.replaceChildren();
+  const a=document.createElement('button');a.className='muestra auto';a.style.background=auto;a.textContent='Del estilo';a.setAttribute('aria-pressed',String(!valor));a.onclick=()=>alElegir(null);cont.appendChild(a);
+  for(const[c,n]of lista){const b=document.createElement('button');b.className='muestra';b.style.setProperty('--c',c);b.title=n;b.setAttribute('aria-label',n);b.setAttribute('aria-pressed',String(valor===c));b.onclick=()=>alElegir(c);cont.appendChild(b);}
+  const l=document.createElement('label');l.className='muestra libre';l.title='Otro color';
+  const enLista=valor&&lista.some(([c])=>c===valor);l.setAttribute('aria-pressed',String(!!valor&&!enLista));
+  const inp=document.createElement('input');inp.type='color';inp.value=valor||'#888888';inp.setAttribute('aria-label','Otro color');
+  inp.addEventListener('change',e=>alElegir(e.target.value));l.appendChild(inp);cont.appendChild(l);
+}
+function pintarDiseno(){
+  $('temas').replaceChildren(...Object.entries(TEMAS).map(([k,t])=>{
+    const b=document.createElement('button');b.className='tema-card';b.setAttribute('aria-pressed',String(diseno.tema===k));
+    b.innerHTML=`<div class="mini" style="background:${t.mini}"><i style="background:${t.miniTapa}"></i><b style="background:${t.miniAcento}"></b></div><div><span>${t.nombre}</span><br><small>${t.desc}</small></div>`;
+    b.onclick=()=>{diseno.tema=k;cambio();};return b;}));
+  for(const k of['sub','titulo','frase','firma']){const i=$('d-'+k);if(document.activeElement!==i)i.value=diseno[k]||'';i.placeholder=k==='firma'?'Ej.: Familia Soto · Navidad 2026':T()[k];}
+  $('d-instr').checked=diseno.instr!==false;
+  muestrasDe($('d-tapa'),TAPAS,diseno.tapa,T().miniTapa,c=>{diseno.tapa=c;cambio();});
+  muestrasDe($('d-hoja'),HOJAS,diseno.hoja,T().hoja,c=>{diseno.hoja=c;cambio();});
+  muestrasDe($('d-tinta'),COLORES,diseno.tinta,'#5b5b5b',c=>{diseno.tinta=c;cambio();});
+  $('d-foto-prev').hidden=!fotoPortadaUrl;if(fotoPortadaUrl)$('d-foto-prev').src=fotoPortadaUrl;$('d-foto-quitar').hidden=!fotoPortadaUrl;
+  $('d-foto-btn').textContent=fotoPortadaUrl?'Cambiar foto…':'Elegir foto…';
+}
+function cambio(){aplicarDiseno();guardarDiseno();pintarDiseno();}
+let tTexto;
+for(const k of['sub','titulo','frase','firma'])$('d-'+k).addEventListener('input',e=>{diseno[k]=e.target.value||null;if(k==='firma')diseno.firma=e.target.value;clearTimeout(tTexto);tTexto=setTimeout(()=>{aplicarDiseno();guardarDiseno();},250);});
+$('d-instr').onchange=e=>{diseno.instr=e.target.checked;cambio();};
+$('d-restablecer').onclick=()=>{diseno={...DISENO_BASE,tema:diseno.tema};ponerFotoPortada(null);cfgGuardar('fotoPortada',undefined);cambio();aviso('Diseño del estilo «'+T().nombre+'» restablecido');};
+$('d-foto-btn').onclick=()=>$('in-portada').click();
+$('in-portada').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const b=await reducirImagen(f,1400);ponerFotoPortada(b);await cfgGuardar('fotoPortada',b);cambio();}catch(err){aviso('No pude abrir esa foto');}};
+$('d-foto-quitar').onclick=async()=>{ponerFotoPortada(null);await cfgGuardar('fotoPortada',undefined);cambio();};
+function abrirDiseno(){pintarDiseno();$('diseno').hidden=false;}
+function cerrarDiseno(){$('diseno').hidden=true;}
+$('btn-diseno').onclick=abrirDiseno;$('diseno-cerrar').onclick=cerrarDiseno;
+$('diseno').addEventListener('click',e=>{if(e.target.id==='diseno')cerrarDiseno();});
+function rehacerPapeles(){
+  const cont=$('papeles');cont.querySelectorAll('.papel-m').forEach(b=>b.remove());
+  const lista=[[hojaPred(),'Del diseño'],...PAPELES.filter(([c])=>c!==hojaPred())];
+  lista.forEach(([c,n])=>{const b=document.createElement('button');b.className='muestra papel-m';b.style.setProperty('--c',c);b.title='Hoja '+n;b.setAttribute('aria-label','Hoja '+n);b.dataset.p=c;b.onclick=()=>ponerPapel(c);cont.appendChild(b);});
+}
+
 COLORES.forEach(([c,n])=>{const b=document.createElement('button');b.className='muestra';b.style.setProperty('--c',c);b.title=n;b.setAttribute('aria-label',n);b.dataset.c=c;b.onclick=()=>ponerColor(c);$('colores').appendChild(b);});
 {const l=document.createElement('label');l.className='muestra libre';l.title='Otro color';l.innerHTML='<input type="color" id="color-libre" value="#5b5b5b" aria-label="Otro color">';$('colores').appendChild(l);
  l.querySelector('input').addEventListener('input',e=>ponerColor(e.target.value,true));}
-PAPELES.forEach(([c,n])=>{const b=document.createElement('button');b.className='muestra papel-m';b.style.setProperty('--c',c);b.title='Hoja '+n;b.setAttribute('aria-label','Hoja '+n);b.dataset.p=c;b.onclick=()=>ponerPapel(c);$('papeles').appendChild(b);});
+papel=hojaPred();herr.color=tintaPred();rehacerPapeles();
 GROSORES.forEach(([t,n])=>{const b=document.createElement('button');b.className='grosor';b.title=n;b.setAttribute('aria-label',n);b.dataset.t=t;const d=Math.max(4,t*1.6);b.innerHTML=`<i style="width:${d}px;height:${d}px"></i>`;b.onclick=()=>{herr.tam=t;marcar();};$('grosores').appendChild(b);});
 function ponerColor(c,libre){herr.color=c;herr.borrar=false;marcar();}
 function ponerPapel(c){papel=c;$('escritura').style.setProperty('--papel',c);marcar();enviarTrazos();}
@@ -679,7 +858,7 @@ function enviarTrazos(){if(!elegida||envioPendiente)return;envioPendiente=true;s
 
 async function elegir(){
   if(escribiendo||!fotos.length)return;const f=fotos[actual];escribiendo=true;
-  $('foto-hoja').src=urlDe(actual);trazos=[];trazo=null;herr.borrar=false;marcar();
+  $('foto-hoja').src=urlDe(actual);trazos=[];trazo=null;herr.borrar=false;papel=hojaPred();$('escritura').style.setProperty('--papel',papel);marcar();
   $('sub-hoja').textContent=angosto()||document.body.classList.contains('solo-control')?'Con el dedo, el lápiz o el mouse. Aparece en vivo en el libro.':'Con el dedo, el lápiz o el mouse. Aparece en vivo en el libro →';
   $('escritura').classList.add('visible');$('escritura').setAttribute('aria-hidden','false');
   requestAnimationFrame(tamLienzo);
@@ -720,13 +899,16 @@ let recuerdos=[],borrador=null,idx=0,ocupado=false,cadena=Promise.resolve();
 const dobles=()=>{const l=[{tipo:'portada'},...recuerdos.map(r=>({tipo:'recuerdo',r}))];if(borrador)l.push({tipo:'borrador',r:borrador});return l;};
 function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}
 function crearIzq(d,n){
-  if(d.tipo==='portada'){const c=el('div','contenido portada-izq');c.append(el('div','adorno','❦'),el('p',null,'Cada foto guarda un momento. Cada página, lo que sentimos al vivirlo.'));return c;}
+  if(d.tipo==='portada'){const c=el('div','contenido portada-izq');
+    if(fotoPortadaUrl){const m=el('div','marco portada-foto'),img=new Image();img.src=fotoPortadaUrl;img.alt='';m.append(el('div','cinta'),img);c.append(m);}else c.append(adornoEl());
+    c.append(el('p',null,txt('frase')));return c;}
   const c=el('div','contenido lado-foto'),m=el('div','marco'),img=new Image();img.src=d.r.url;img.alt='';m.append(el('div','cinta'),img);
   c.style.background=d.r.papel||'';c.append(m,el('div','fecha',fechaTxt(d.r.fecha)),el('div','num',String(n*2)));return c;
 }
 function crearDer(d,n){
-  if(d.tipo==='portada'){const c=el('div','contenido portada-der'),h=el('h1');h.append(el('span',null,'Libro de'),'Recuerdos');
-    c.append(h,el('div','linea'),el('p',null,'Mano a la izquierda: avanzas. Mano a la derecha: vuelves. Junta las dos manos para cerrar el libro.'));return c;}
+  if(d.tipo==='portada'){const c=el('div','contenido portada-der'),h=el('h1');h.append(el('span',null,txt('sub')),txt('titulo'));
+    c.append(h,el('div','linea'));if(diseno.firma)c.append(el('div','firma',diseno.firma));
+    if(diseno.instr!==false)c.append(el('p',null,'Mano a la izquierda: avanzas. Mano a la derecha: vuelves. Junta las dos manos para cerrar el libro.'));return c;}
   const c=el('div','contenido lado-texto');c.style.background=d.r.papel||'';
   const cv=el('canvas','tinta');cv._datos=d.r;if(d.tipo==='borrador'){cv.dataset.borrador='1';c.append(el('div','en-vivo','escribiendo'));}
   c.append(cv,el('div','num',String(n*2+1)));return c;
@@ -734,7 +916,10 @@ function crearDer(d,n){
 const pintarTintas=(sel='#libro canvas.tinta')=>document.querySelectorAll(sel).forEach(pintarTinta);
 function tamLibro(){const e=$('escena'),h=e.clientHeight,w=e.clientWidth;if(!h||!w)return;libro.style.setProperty('--alto',Math.max(120,Math.min(h*.94,w*.94/1.5))+'px');requestAnimationFrame(()=>pintarTintas());}
 let cerrado=false;
-function crearTapa(){const t=el('div','tapa'),h=el('h1');h.append(el('span',null,'Libro de'),'Recuerdos');t.append(el('div','adorno','❦'),h,el('p',null,'Mueve la mano a la izquierda o junta las manos para abrirlo'));return t;}
+function crearTapa(){const t=el('div','tapa'),h=el('h1');h.append(el('span',null,txt('sub')),txt('titulo'));
+  if(fotoPortadaUrl){const img=new Image();img.className='foto-tapa';img.src=fotoPortadaUrl;img.alt='';t.append(img);}else t.append(adornoEl());
+  t.append(h);if(diseno.firma)t.append(el('div','firma',diseno.firma));
+  if(diseno.instr!==false)t.append(el('p',null,'Mueve la mano a la izquierda o junta las manos para abrirlo'));return t;}
 function estadoNav(){$('btn-cerrar-libro').textContent=cerrado?'Abrir libro':'Cerrar libro';if(cerrado){$('pag-num').textContent='Libro cerrado';$('pag-ant').disabled=true;$('pag-sig').disabled=false;return;}const n=dobles().length;$('pag-num').textContent=idx===0?'Portada':`Recuerdo ${idx} de ${n-1}`;$('pag-ant').disabled=idx===0;$('pag-sig').disabled=idx>=n-1;}
 function pintar(){if(cerrado){izq.replaceChildren();der.replaceChildren(crearTapa());estadoNav();return;}const l=dobles();idx=Math.max(0,Math.min(l.length-1,idx));izq.replaceChildren(crearIzq(l[idx],idx));der.replaceChildren(crearDer(l[idx],idx));pintarTintas();estadoNav();}
 async function cerrarLibro(){
@@ -793,6 +978,7 @@ function manejar(m){
       pintarTintas('#libro canvas.tinta[data-borrador]');break;
     case 'guardado':enCola(async()=>{if(cerrado)await abrirLibro();const r=m.registro;if(r&&!recuerdos.some(x=>x.id===r.id))recuerdos.push({id:r.id,v:r.v,trazos:r.trazos||[],ancho:r.ancho,papel:r.papel,fecha:r.fecha,url:URL.createObjectURL(r.imagen)});else if(!r)await cargarRecuerdos();if(borrador)URL.revokeObjectURL(borrador.url);borrador=null;const u=dobles().length-1;if(idx===u)pintar();else await voltear(u);});break;
     case 'cancelar':enCola(async()=>{if(!borrador)return;if(idx===dobles().length-1)await voltear(idx-1);URL.revokeObjectURL(borrador.url);borrador=null;pintar();});break;
+    case 'diseno':diseno={...DISENO_BASE,...m.diseno};ponerFotoPortada(m.foto||null);aplicarDiseno();break;
     case 'recargar':enCola(async()=>{await cargarRecuerdos();borrador=null;idx=0;cerrado=false;libro.classList.remove('cerrado','cerrando');pintar();});break;
   }
 }
@@ -826,6 +1012,7 @@ $('btn-vaciar').onclick=async()=>{
 /* ===================== Teclado ===================== */
 window.addEventListener('keydown',e=>{
   if(!$('config').hidden){if(e.key==='Escape')cerrarConfig();return;}
+  if(!$('diseno').hidden){if(e.key==='Escape')cerrarDiseno();return;}
   if(escribiendo){
     if(e.key==='Escape'){e.preventDefault();cancelar();}
     else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();guardar();}
@@ -971,8 +1158,9 @@ if(MODO_LIBRO){
 /* ===================== Inicio ===================== */
 const ro=new ResizeObserver(tamLibro);ro.observe($('escena'));
 const roCab=new ResizeObserver(()=>document.documentElement.style.setProperty('--alto-cab',document.querySelector('header').offsetHeight+'px'));roCab.observe(document.querySelector('header'));
-marcar();
+aplicarDiseno(false);marcar();
 (async()=>{
+  try{const g=await cfgLeer('diseno');if(g){diseno={...DISENO_BASE,...g};aplicarDiseno(false);try{localStorage.setItem('libro-diseno',JSON.stringify(diseno));}catch(e){}}const fp=await cfgLeer('fotoPortada');if(fp)ponerFotoPortada(fp);}catch(e){}
   try{await cargarRecuerdos();usadas=new Set((await dbTodos()).map(r=>r.clave));}catch(e){}
   pintar();tamLibro();
   if(MODO_LIBRO){if(canal)canal.postMessage({tipo:'pedir-estado'});if(aj.auto&&!EN_MARCO)activarCamara();return;}

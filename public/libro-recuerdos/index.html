@@ -341,7 +341,7 @@ body.modo-libro.quieto{cursor:none}
     <div id="ajustes-cam" hidden>
       <label>Cámara <select id="sel-camara"><option value="">Predeterminada</option></select></label>
       <label>Sensibilidad del gesto <input type="range" id="sensibilidad" min="0.04" max="0.30" step="0.01">
-        <small>Más a la izquierda = basta un movimiento más corto. Junta las dos manos para cerrar o abrir el libro.</small></label>
+        <small>Más a la izquierda = basta un movimiento más corto.</small></label>
       <label class="fila"><input type="checkbox" id="invertir"> Invertir dirección</label>
       <label class="fila"><input type="checkbox" id="ver-video"> Mostrar imagen de la cámara</label>
     </div>
@@ -908,7 +908,7 @@ function crearIzq(d,n){
 function crearDer(d,n){
   if(d.tipo==='portada'){const c=el('div','contenido portada-der'),h=el('h1');h.append(el('span',null,txt('sub')),txt('titulo'));
     c.append(h,el('div','linea'));if(diseno.firma)c.append(el('div','firma',diseno.firma));
-    if(diseno.instr!==false)c.append(el('p',null,'Mano a la izquierda: avanzas. Mano a la derecha: vuelves. Junta las dos manos para cerrar el libro.'));return c;}
+    if(diseno.instr!==false)c.append(el('p',null,'Mano a la izquierda: avanzas. Mano a la derecha: vuelves.'));return c;}
   const c=el('div','contenido lado-texto');c.style.background=d.r.papel||'';
   const cv=el('canvas','tinta');cv._datos=d.r;if(d.tipo==='borrador'){cv.dataset.borrador='1';c.append(el('div','en-vivo','escribiendo'));}
   c.append(cv,el('div','num',String(n*2+1)));return c;
@@ -919,7 +919,7 @@ let cerrado=false;
 function crearTapa(){const t=el('div','tapa'),h=el('h1');h.append(el('span',null,txt('sub')),txt('titulo'));
   if(fotoPortadaUrl){const img=new Image();img.className='foto-tapa';img.src=fotoPortadaUrl;img.alt='';t.append(img);}else t.append(adornoEl());
   t.append(h);if(diseno.firma)t.append(el('div','firma',diseno.firma));
-  if(diseno.instr!==false)t.append(el('p',null,'Mueve la mano a la izquierda o junta las manos para abrirlo'));return t;}
+  if(diseno.instr!==false)t.append(el('p',null,'Mueve la mano a la izquierda para abrirlo'));return t;}
 function estadoNav(){$('btn-cerrar-libro').textContent=cerrado?'Abrir libro':'Cerrar libro';if(cerrado){$('pag-num').textContent='Libro cerrado';$('pag-ant').disabled=true;$('pag-sig').disabled=false;return;}const n=dobles().length;$('pag-num').textContent=idx===0?'Portada':`Recuerdo ${idx} de ${n-1}`;$('pag-ant').disabled=idx===0;$('pag-sig').disabled=idx>=n-1;}
 function pintar(){if(cerrado){izq.replaceChildren();der.replaceChildren(crearTapa());estadoNav();return;}const l=dobles();idx=Math.max(0,Math.min(l.length-1,idx));izq.replaceChildren(crearIzq(l[idx],idx));der.replaceChildren(crearDer(l[idx],idx));pintarTintas();estadoNav();}
 async function cerrarLibro(){
@@ -1067,7 +1067,7 @@ async function crearDetector(){
   const[base,modelo]=await rutasDetector();
   const{FilesetResolver,HandLandmarker}=await import(base+'/vision_bundle.mjs');
   const vision=await FilesetResolver.forVisionTasks(base+'/wasm');
-  const op=d=>({baseOptions:{modelAssetPath:modelo,delegate:d},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.5,minHandPresenceConfidence:.5,minTrackingConfidence:.4});
+  const op=d=>({baseOptions:{modelAssetPath:modelo,delegate:d},runningMode:'VIDEO',numHands:1,minHandDetectionConfidence:.5,minHandPresenceConfidence:.5,minTrackingConfidence:.4});
   try{return await HandLandmarker.createFromOptions(vision,op('GPU'));}catch(e){return await HandLandmarker.createFromOptions(vision,op('CPU'));}
 }
 function detenerCamara(){camActiva=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;caja.hidden=true;$('ajustes-cam').hidden=true;$('btn-ajustes-cam').hidden=true;$('btn-camara').textContent='Activar cámara';$('btn-camara').classList.remove('activo');aj.auto=false;guardarAj();}
@@ -1101,35 +1101,16 @@ function enAppInterna(){const u=navigator.userAgent||'';return /\bwv\b|FBAN|FBAV
 $('btn-camara').onclick=activarCamara;
 
 const VENTANA=650,ESPERA=600,RETORNO=850;
-let separadasEn=0,dosManosEn=0,distDos=1,ultimoCierre=0;
 const centro=lm=>{const ids=[0,5,9,13,17];return{x:ids.reduce((s,i)=>s+lm[i].x,0)/5,y:ids.reduce((s,i)=>s+lm[i].y,0)/5};};
-function juntarManos(ahora){
-  if(ahora-ultimoCierre<1800)return;
-  ultimoCierre=ahora;ultimoGesto=ahora+600;historial=[];separadasEn=0;
-  alternarCierre();
-}
 function bucle(){
   requestAnimationFrame(bucle);
   if(!camActiva||!detector||video.readyState<2||video.currentTime===ultimoFrame)return;
   ultimoFrame=video.currentTime;const ahora=performance.now();let r;
   try{r=detector.detectForVideo(video,ahora);}catch(e){return;}
   const manos=(r.landmarks||[]).map(centro);
-  caja.classList.toggle('mano',manos.length>0);caja.classList.toggle('dos',manos.length>1);
-  if(manos[0]){$('punto').style.left=((1-manos[0].x)*100)+'%';$('punto').style.top=(manos[0].y*100)+'%';}
-  if(manos[1]){$('punto2').style.left=((1-manos[1].x)*100)+'%';$('punto2').style.top=(manos[1].y*100)+'%';}
-
-  // --- Dos manos: si estaban separadas y se juntan, se cierra (o abre) el libro
-  if(manos.length>=2){
-    const d=Math.hypot(manos[0].x-manos[1].x,manos[0].y-manos[1].y);
-    distDos=d;dosManosEn=ahora;historial=[];
-    if(d>0.24)separadasEn=ahora;
-    if(d<0.15&&separadasEn&&ahora-separadasEn<2500)juntarManos(ahora);
-    return; // con dos manos no se pasan páginas
-  }
-  // al juntarse mucho, el detector a veces ve una sola mano: también cuenta
-  if(manos.length===1&&ahora-dosManosEn<350&&distDos<0.22&&separadasEn&&ahora-separadasEn<2500){juntarManos(ahora);return;}
+  caja.classList.toggle('mano',manos.length>0);
   if(!manos.length){historial=[];return;}
-  if(ahora-dosManosEn<500)return; // recién se soltó una mano: espera un poco
+  $('punto').style.left=((1-manos[0].x)*100)+'%';$('punto').style.top=(manos[0].y*100)+'%';
 
   // --- Una mano: barrido. Cuenta solo el avance horizontal (sirve en diagonal)
   const x=manos[0].x;

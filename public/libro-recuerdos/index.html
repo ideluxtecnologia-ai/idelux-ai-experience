@@ -92,6 +92,16 @@ body.solo-control #panel-libro{display:none}
 /* Libro */
 #escena{position:absolute;inset:34px 0 96px;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
 #libro{--alto:400px;position:relative;height:var(--alto);width:calc(var(--alto)*1.5);perspective:2600px;transform-style:preserve-3d;color:var(--tinta)}
+#libro{transition:transform .6s cubic-bezier(.3,.7,.3,1)}
+#libro.cerrado{transform:translateX(-25%)}
+#libro.cerrado::before{left:48.7%}
+#libro.cerrado .pagina.izq,#libro.cerrando .pagina.izq{visibility:hidden}
+.tapa{position:absolute;inset:0;background:linear-gradient(135deg,#6e3829,#3d1d16);color:#f0d9a8;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4%;border-radius:0 5px 5px 0;box-shadow:inset 8px 0 14px rgba(0,0,0,.35)}
+.tapa::before{content:"";position:absolute;inset:7%;border:2px solid rgba(240,217,168,.4);border-radius:4px}
+.tapa h1{font-size:calc(var(--alto)*.1);font-weight:600;line-height:1}
+.tapa h1 span{display:block;font-style:italic;font-weight:500;font-size:.55em;opacity:.8}
+.tapa .adorno{font-size:calc(var(--alto)*.07);opacity:.6}
+.tapa p{font-size:calc(var(--alto)*.03);opacity:.65;max-width:70%;line-height:1.35}
 #libro::before{content:"";position:absolute;inset:-1.6% -1.3%;border-radius:8px;background:linear-gradient(135deg,#5b2e22,#3d1d16);box-shadow:0 34px 80px rgba(0,0,0,.7)}
 .pagina,.cara{position:absolute;top:0;width:50%;height:100%;overflow:hidden;background:var(--crema)}
 .pagina.izq{left:0;border-radius:3px 0 0 3px}.pagina.der{left:50%;border-radius:0 3px 3px 0}
@@ -130,10 +140,13 @@ canvas.tinta{position:absolute;left:8%;right:8%;top:9%;bottom:11%;width:84%;heig
 /* Cámara */
 #camara{position:absolute;right:14px;top:40px;width:180px;aspect-ratio:4/3;z-index:9;border-radius:10px;overflow:hidden;background:#000;box-shadow:0 8px 24px rgba(0,0,0,.5);border:2px solid rgba(255,255,255,.15)}
 #camara.mano{border-color:#7ed491}
+#btn-camara.activo{background:#7ed491!important;border-color:#7ed491!important;color:#10240f!important;opacity:1}
 #camara.mini video{opacity:0}
 #camara video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 #punto{position:absolute;width:14px;height:14px;margin:-7px;border-radius:50%;background:#7ed491;box-shadow:0 0 10px #7ed491;display:none}
 #camara.mano #punto{display:block}
+#punto2{position:absolute;width:14px;height:14px;margin:-7px;border-radius:50%;background:#f0c27a;box-shadow:0 0 10px #f0c27a;display:none}
+#camara.dos #punto2{display:block}
 #estado-cam{position:absolute;left:0;right:0;bottom:0;padding:3px 8px;font:12px/1.3 system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.6)}
 #ajustes-cam{position:absolute;right:14px;bottom:84px;z-index:12;width:min(300px,calc(100% - 28px));padding:16px;font:14px/1.4 system-ui,sans-serif;color:#f1e6d2;background:rgba(25,20,16,.96);border:1px solid rgba(255,255,255,.15);border-radius:12px;display:flex;flex-direction:column;gap:12px}
 #ajustes-cam label{display:flex;flex-direction:column;gap:5px}
@@ -265,13 +278,13 @@ body.modo-libro.quieto{cursor:none}
     <div id="flecha-gesto"></div>
     <div id="camara" hidden>
       <video id="video" playsinline muted></video>
-      <div id="punto"></div>
+      <div id="punto"></div><div id="punto2"></div>
       <div id="estado-cam">Iniciando cámara…</div>
     </div>
     <div id="ajustes-cam" hidden>
       <label>Cámara <select id="sel-camara"><option value="">Predeterminada</option></select></label>
-      <label>Sensibilidad del gesto <input type="range" id="sensibilidad" min="0.10" max="0.40" step="0.01">
-        <small>Más a la izquierda = basta un movimiento más corto.</small></label>
+      <label>Sensibilidad del gesto <input type="range" id="sensibilidad" min="0.04" max="0.30" step="0.01">
+        <small>Más a la izquierda = basta un movimiento más corto. Junta las dos manos para cerrar o abrir el libro.</small></label>
       <label class="fila"><input type="checkbox" id="invertir"> Invertir dirección</label>
       <label class="fila"><input type="checkbox" id="ver-video"> Mostrar imagen de la cámara</label>
     </div>
@@ -279,6 +292,7 @@ body.modo-libro.quieto{cursor:none}
       <button class="btn" id="pag-ant">← Anterior</button>
       <span id="pag-num"></span>
       <button class="btn" id="pag-sig">Siguiente →</button>
+      <button class="btn" id="btn-cerrar-libro">Cerrar libro</button>
       <button class="btn" id="btn-camara">Activar cámara</button>
       <button class="btn" id="btn-ajustes-cam" hidden>Ajustes</button>
       <button class="btn" id="btn-pantalla">Pantalla completa</button>
@@ -712,16 +726,47 @@ function crearIzq(d,n){
 }
 function crearDer(d,n){
   if(d.tipo==='portada'){const c=el('div','contenido portada-der'),h=el('h1');h.append(el('span',null,'Libro de'),'Recuerdos');
-    c.append(h,el('div','linea'),el('p',null,'Mueve la mano hacia la izquierda para pasar la página, y hacia la derecha para volver.'));return c;}
+    c.append(h,el('div','linea'),el('p',null,'Mano a la izquierda: avanzas. Mano a la derecha: vuelves. Junta las dos manos para cerrar el libro.'));return c;}
   const c=el('div','contenido lado-texto');c.style.background=d.r.papel||'';
   const cv=el('canvas','tinta');cv._datos=d.r;if(d.tipo==='borrador'){cv.dataset.borrador='1';c.append(el('div','en-vivo','escribiendo'));}
   c.append(cv,el('div','num',String(n*2+1)));return c;
 }
 const pintarTintas=(sel='#libro canvas.tinta')=>document.querySelectorAll(sel).forEach(pintarTinta);
 function tamLibro(){const e=$('escena'),h=e.clientHeight,w=e.clientWidth;if(!h||!w)return;libro.style.setProperty('--alto',Math.max(120,Math.min(h*.94,w*.94/1.5))+'px');requestAnimationFrame(()=>pintarTintas());}
-function estadoNav(){const n=dobles().length;$('pag-num').textContent=idx===0?'Portada':`Recuerdo ${idx} de ${n-1}`;$('pag-ant').disabled=idx===0;$('pag-sig').disabled=idx>=n-1;}
-function pintar(){const l=dobles();idx=Math.max(0,Math.min(l.length-1,idx));izq.replaceChildren(crearIzq(l[idx],idx));der.replaceChildren(crearDer(l[idx],idx));pintarTintas();estadoNav();}
+let cerrado=false;
+function crearTapa(){const t=el('div','tapa'),h=el('h1');h.append(el('span',null,'Libro de'),'Recuerdos');t.append(el('div','adorno','❦'),h,el('p',null,'Mueve la mano a la izquierda o junta las manos para abrirlo'));return t;}
+function estadoNav(){$('btn-cerrar-libro').textContent=cerrado?'Abrir libro':'Cerrar libro';if(cerrado){$('pag-num').textContent='Libro cerrado';$('pag-ant').disabled=true;$('pag-sig').disabled=false;return;}const n=dobles().length;$('pag-num').textContent=idx===0?'Portada':`Recuerdo ${idx} de ${n-1}`;$('pag-ant').disabled=idx===0;$('pag-sig').disabled=idx>=n-1;}
+function pintar(){if(cerrado){izq.replaceChildren();der.replaceChildren(crearTapa());estadoNav();return;}const l=dobles();idx=Math.max(0,Math.min(l.length-1,idx));izq.replaceChildren(crearIzq(l[idx],idx));der.replaceChildren(crearDer(l[idx],idx));pintarTintas();estadoNav();}
+async function cerrarLibro(){
+  if(cerrado)return;
+  if(idx!==0)await voltear(0);
+  ocupado=true;const l=dobles();
+  const hoja=el('div','hoja atras'),fr=el('div','cara frente'),rv=el('div','cara reverso'),so=el('div','sombra');
+  fr.append(crearIzq(l[0],0),so);rv.append(crearTapa());hoja.append(fr,rv);
+  libro.classList.add('cerrando');libro.append(hoja);
+  const dur=matchMedia('(prefers-reduced-motion:reduce)').matches?1:950;
+  await hoja.animate([{transform:'rotateY(0deg)'},{transform:'rotateY(90deg) translateZ(4px)',offset:.5},{transform:'rotateY(180deg)'}],{duration:dur,easing:'cubic-bezier(.45,.05,.3,1)'}).finished;
+  der.replaceChildren(crearTapa());izq.replaceChildren();hoja.remove();
+  cerrado=true;libro.classList.remove('cerrando');libro.classList.add('cerrado');estadoNav();
+  await new Promise(r=>setTimeout(r,dur?600:1));ocupado=false;
+}
+async function abrirLibro(){
+  if(!cerrado)return;
+  ocupado=true;const l=dobles();
+  libro.classList.add('cerrando');libro.classList.remove('cerrado');
+  await new Promise(r=>setTimeout(r,matchMedia('(prefers-reduced-motion:reduce)').matches?1:550));
+  const hoja=el('div','hoja atras'),fr=el('div','cara frente'),rv=el('div','cara reverso');
+  fr.append(crearIzq(l[0],0));rv.append(crearTapa());hoja.append(fr,rv);
+  der.replaceChildren(crearDer(l[0],0));libro.append(hoja);
+  const dur=matchMedia('(prefers-reduced-motion:reduce)').matches?1:950;
+  await hoja.animate([{transform:'rotateY(180deg)'},{transform:'rotateY(90deg) translateZ(4px)',offset:.5},{transform:'rotateY(0deg)'}],{duration:dur,easing:'cubic-bezier(.45,.05,.3,1)'}).finished;
+  izq.replaceChildren(crearIzq(l[0],0));libro.classList.remove('cerrando');hoja.remove();
+  cerrado=false;idx=0;pintarTintas();estadoNav();ocupado=false;
+}
+function alternarCierre(){if(ocupado)return;enCola(()=>cerrado?abrirLibro():cerrarLibro());}
+$('btn-cerrar-libro').onclick=alternarCierre;
 async function voltear(dest){
+  if(cerrado)await abrirLibro();
   const l=dobles();dest=Math.max(0,Math.min(l.length-1,dest));if(dest===idx){pintar();return;}
   ocupado=true;const ad=dest>idx,hoja=el('div','hoja '+(ad?'adelante':'atras')),fr=el('div','cara frente'),rv=el('div','cara reverso'),so=el('div','sombra');
   if(ad){fr.append(crearDer(l[idx],idx));rv.append(crearIzq(l[dest],dest));der.replaceChildren(crearDer(l[dest],dest));}
@@ -734,7 +779,7 @@ async function voltear(dest){
   hoja.remove();idx=dest;pintarTintas();estadoNav();ocupado=false;
 }
 const enCola=f=>{cadena=cadena.then(f).catch(e=>console.error(e));return cadena;};
-function navegar(n){if(ocupado)return;const d=idx+n;if(d<0||d>=dobles().length)return;enCola(()=>voltear(d));}
+function navegar(n){if(ocupado)return;if(cerrado){if(n>0)enCola(abrirLibro);return;}const d=idx+n;if(d<0||d>=dobles().length)return;enCola(()=>voltear(d));}
 function flecha(s){const f=$('flecha-gesto');f.textContent=s;f.classList.remove('mostrar');void f.offsetWidth;f.classList.add('mostrar');}
 async function cargarRecuerdos(){recuerdos.forEach(r=>URL.revokeObjectURL(r.url));recuerdos=(await dbTodos()).map(r=>({id:r.id,v:r.v,trazos:r.trazos||[],ancho:r.ancho,papel:r.papel,fecha:r.fecha,url:URL.createObjectURL(r.imagen)}));}
 
@@ -746,9 +791,9 @@ function manejar(m){
       if(borrador.papel!==m.papel){borrador.papel=m.papel;document.querySelectorAll('#libro canvas.tinta[data-borrador]').forEach(cv=>cv.parentNode.style.background=m.papel);
         if(idx===dobles().length-1&&!ocupado)izq.firstChild&&(izq.firstChild.style.background=m.papel);}
       pintarTintas('#libro canvas.tinta[data-borrador]');break;
-    case 'guardado':enCola(async()=>{const r=m.registro;if(r&&!recuerdos.some(x=>x.id===r.id))recuerdos.push({id:r.id,v:r.v,trazos:r.trazos||[],ancho:r.ancho,papel:r.papel,fecha:r.fecha,url:URL.createObjectURL(r.imagen)});else if(!r)await cargarRecuerdos();if(borrador)URL.revokeObjectURL(borrador.url);borrador=null;const u=dobles().length-1;if(idx===u)pintar();else await voltear(u);});break;
+    case 'guardado':enCola(async()=>{if(cerrado)await abrirLibro();const r=m.registro;if(r&&!recuerdos.some(x=>x.id===r.id))recuerdos.push({id:r.id,v:r.v,trazos:r.trazos||[],ancho:r.ancho,papel:r.papel,fecha:r.fecha,url:URL.createObjectURL(r.imagen)});else if(!r)await cargarRecuerdos();if(borrador)URL.revokeObjectURL(borrador.url);borrador=null;const u=dobles().length-1;if(idx===u)pintar();else await voltear(u);});break;
     case 'cancelar':enCola(async()=>{if(!borrador)return;if(idx===dobles().length-1)await voltear(idx-1);URL.revokeObjectURL(borrador.url);borrador=null;pintar();});break;
-    case 'recargar':enCola(async()=>{await cargarRecuerdos();borrador=null;idx=0;pintar();});break;
+    case 'recargar':enCola(async()=>{await cargarRecuerdos();borrador=null;idx=0;cerrado=false;libro.classList.remove('cerrado','cerrando');pintar();});break;
   }
 }
 if(canal)canal.addEventListener('message',({data:m})=>{
@@ -801,8 +846,9 @@ window.addEventListener('keydown',e=>{
 const MP='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
 const MODELO='https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
 const video=$('video'),caja=$('camara'),estadoCam=$('estado-cam');
-let aj={sensibilidad:.2,invertir:false,verVideo:true,camaraId:'',auto:false};
+let aj={sensibilidad:.06,invertir:false,verVideo:true,camaraId:'',auto:false};
 try{Object.assign(aj,JSON.parse(localStorage.getItem('libro-ajustes-cam')||'{}'));}catch(e){}
+if(aj.version!==3){aj.sensibilidad=.06;aj.version=3;try{localStorage.setItem('libro-ajustes-cam',JSON.stringify(aj));}catch(e){}}
 const guardarAj=()=>{try{localStorage.setItem('libro-ajustes-cam',JSON.stringify(aj));}catch(e){}};
 $('sensibilidad').value=aj.sensibilidad;$('invertir').checked=aj.invertir;$('ver-video').checked=aj.verVideo;caja.classList.toggle('mini',!aj.verVideo);
 $('sensibilidad').oninput=e=>{aj.sensibilidad=parseFloat(e.target.value);guardarAj();};
@@ -834,7 +880,7 @@ async function crearDetector(){
   const[base,modelo]=await rutasDetector();
   const{FilesetResolver,HandLandmarker}=await import(base+'/vision_bundle.mjs');
   const vision=await FilesetResolver.forVisionTasks(base+'/wasm');
-  const op=d=>({baseOptions:{modelAssetPath:modelo,delegate:d},runningMode:'VIDEO',numHands:1,minHandDetectionConfidence:.6,minHandPresenceConfidence:.6,minTrackingConfidence:.5});
+  const op=d=>({baseOptions:{modelAssetPath:modelo,delegate:d},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.5,minHandPresenceConfidence:.5,minTrackingConfidence:.4});
   try{return await HandLandmarker.createFromOptions(vision,op('GPU'));}catch(e){return await HandLandmarker.createFromOptions(vision,op('CPU'));}
 }
 function detenerCamara(){camActiva=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;caja.hidden=true;$('ajustes-cam').hidden=true;$('btn-ajustes-cam').hidden=true;$('btn-camara').textContent='Activar cámara';$('btn-camara').classList.remove('activo');aj.auto=false;guardarAj();}
@@ -867,26 +913,51 @@ async function activarCamara(){
 function enAppInterna(){const u=navigator.userAgent||'';return /\bwv\b|FBAN|FBAV|Instagram|Line\/|; ?Claude|Claude\//i.test(u)||(/iPhone|iPad/.test(u)&&!/Safari\//.test(u));}
 $('btn-camara').onclick=activarCamara;
 
-const VENTANA=450,ESPERA=1100,RETORNO=1700;
+const VENTANA=650,ESPERA=600,RETORNO=850;
+let separadasEn=0,dosManosEn=0,distDos=1,ultimoCierre=0;
+const centro=lm=>{const ids=[0,5,9,13,17];return{x:ids.reduce((s,i)=>s+lm[i].x,0)/5,y:ids.reduce((s,i)=>s+lm[i].y,0)/5};};
+function juntarManos(ahora){
+  if(ahora-ultimoCierre<1800)return;
+  ultimoCierre=ahora;ultimoGesto=ahora+600;historial=[];separadasEn=0;
+  alternarCierre();
+}
 function bucle(){
   requestAnimationFrame(bucle);
   if(!camActiva||!detector||video.readyState<2||video.currentTime===ultimoFrame)return;
   ultimoFrame=video.currentTime;const ahora=performance.now();let r;
   try{r=detector.detectForVideo(video,ahora);}catch(e){return;}
-  const lm=r.landmarks&&r.landmarks[0];
-  if(!lm){historial=[];caja.classList.remove('mano');return;}
-  caja.classList.add('mano');
-  const ids=[0,5,9,13,17],x=ids.reduce((s,i)=>s+lm[i].x,0)/5,y=ids.reduce((s,i)=>s+lm[i].y,0)/5;
-  $('punto').style.left=((1-x)*100)+'%';$('punto').style.top=(y*100)+'%';
+  const manos=(r.landmarks||[]).map(centro);
+  caja.classList.toggle('mano',manos.length>0);caja.classList.toggle('dos',manos.length>1);
+  if(manos[0]){$('punto').style.left=((1-manos[0].x)*100)+'%';$('punto').style.top=(manos[0].y*100)+'%';}
+  if(manos[1]){$('punto2').style.left=((1-manos[1].x)*100)+'%';$('punto2').style.top=(manos[1].y*100)+'%';}
+
+  // --- Dos manos: si estaban separadas y se juntan, se cierra (o abre) el libro
+  if(manos.length>=2){
+    const d=Math.hypot(manos[0].x-manos[1].x,manos[0].y-manos[1].y);
+    distDos=d;dosManosEn=ahora;historial=[];
+    if(d>0.24)separadasEn=ahora;
+    if(d<0.15&&separadasEn&&ahora-separadasEn<2500)juntarManos(ahora);
+    return; // con dos manos no se pasan páginas
+  }
+  // al juntarse mucho, el detector a veces ve una sola mano: también cuenta
+  if(manos.length===1&&ahora-dosManosEn<350&&distDos<0.22&&separadasEn&&ahora-separadasEn<2500){juntarManos(ahora);return;}
+  if(!manos.length){historial=[];return;}
+  if(ahora-dosManosEn<500)return; // recién se soltó una mano: espera un poco
+
+  // --- Una mano: barrido. Cuenta solo el avance horizontal (sirve en diagonal)
+  const x=manos[0].x;
   historial.push({t:ahora,x});while(historial.length&&ahora-historial[0].t>VENTANA)historial.shift();
-  if(ahora-ultimoGesto<ESPERA||historial.length<3)return;
-  const dx=x-historial[0].x;if(Math.abs(dx)<aj.sensibilidad)return;
+  if(ahora<ultimoGesto+ESPERA||historial.length<2)return;
+  let xmin=1,xmax=0;for(const h of historial){if(h.x<xmin)xmin=h.x;if(h.x>xmax)xmax=h.x;}
+  const crece=x-xmin,baja=xmax-x;   // recorrido desde el punto más lejano de la ventana
+  const umbral=aj.sensibilidad;
+  if(crece<umbral&&baja<umbral)return;
   // En la imagen sin espejo, mover la mano hacia la izquierda de la persona hace crecer x
-  let dir=dx>0?'izquierda':'derecha';if(aj.invertir)dir=dir==='izquierda'?'derecha':'izquierda';
+  let dir=crece>=baja?'izquierda':'derecha';if(aj.invertir)dir=dir==='izquierda'?'derecha':'izquierda';
   if(ultimaDir&&dir!==ultimaDir&&ahora-ultimoGesto<RETORNO){historial=[];return;} // ignora la vuelta de la mano
   ultimoGesto=ahora;ultimaDir=dir;historial=[];
   flecha(dir==='izquierda'?'←':'→');
-  navegar(dir==='izquierda'?1:-1);   // mano a la izquierda = siguiente; a la derecha = anterior
+  navegar(dir==='izquierda'?1:-1);   // mano a la izquierda = avanzar; a la derecha = volver
 }
 requestAnimationFrame(bucle);
 

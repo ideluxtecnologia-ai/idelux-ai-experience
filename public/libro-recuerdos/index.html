@@ -148,6 +148,24 @@ body.modo-libro #escena{inset:2vh 0 2vh}
 body.modo-libro.quieto .nav-libro{opacity:0}
 body.modo-libro.quieto{cursor:none}
 
+/* Configuración de carpeta */
+#config{position:fixed;inset:0;z-index:55;background:rgba(10,8,6,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+#config .caja{width:min(520px,100%);max-height:100%;overflow:auto;background:#241e19;border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+#config h2{font-size:30px;font-weight:600;line-height:1.05;margin-bottom:4px}
+#config .sub{opacity:.65;font-size:16px;margin-bottom:18px}
+.carpeta-actual{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);margin-bottom:14px}
+.carpeta-actual .ico{width:44px;height:36px;flex:none;border-radius:4px 4px 6px 6px;background:linear-gradient(#e2b25f,#c98d3a);position:relative}
+.carpeta-actual .ico::before{content:"";position:absolute;left:0;top:-6px;width:45%;height:8px;border-radius:4px 4px 0 0;background:#c98d3a}
+.carpeta-actual b{display:block;font-size:20px;line-height:1.2;overflow-wrap:anywhere}
+.carpeta-actual span{font-size:15px;opacity:.6}
+#config .acciones-c{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+#config label.fila{display:flex;align-items:center;gap:10px;font-size:17px;margin:6px 0 14px;cursor:pointer}
+#config label.fila input{width:20px;height:20px}
+#config .nota-c{font-size:14px;opacity:.55;line-height:1.45;border-top:1px solid rgba(255,255,255,.1);padding-top:12px;margin-top:6px}
+#config .cerrar{float:right;margin:-6px -6px 0 0;width:44px;height:44px;border-radius:50%;background:transparent;border:0;font-size:26px;opacity:.7}
+#pedir-carpeta{position:absolute;inset:34px 0 150px;z-index:21;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:20px}
+#pedir-carpeta h3{font-size:30px;font-weight:500;font-style:italic;line-height:1.1}
+#pedir-carpeta p{opacity:.65;max-width:420px}
 #aviso{position:fixed;left:50%;top:16px;transform:translate(-50%,-180%);z-index:60;background:#2b241d;color:#f1e6d2;padding:10px 22px;border-radius:999px;font-size:18px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .4s;max-width:92vw;text-align:center}
 #aviso.ver{transform:translate(-50%,0)}
 #aviso.largo{border-radius:14px;white-space:normal;width:min(560px,92vw);font-size:17px}
@@ -156,7 +174,7 @@ body.modo-libro.quieto{cursor:none}
   header{gap:8px;padding:12px 14px}
   header h1{font-size:20px;white-space:normal}
   header>.btn{font-size:15px;padding:6px 12px;min-height:40px}
-  #btn-carpeta,#btn-ventana{display:none}
+  #btn-ventana{display:none}
   .pestanas{display:flex}
   main{grid-template-columns:minmax(0,1fr)}
   #panel-control{border:0}
@@ -178,8 +196,7 @@ body.modo-libro.quieto{cursor:none}
 
 <header>
   <h1>Libro de recuerdos</h1>
-  <button class="btn" id="btn-fotos">Elegir fotos</button>
-  <button class="btn" id="btn-carpeta">Carpeta</button>
+  <button class="btn" id="btn-config">Carpeta de fotos</button>
   <button class="btn" id="btn-ventana">Libro en otra pantalla ↗</button>
   <button class="btn peligro" id="btn-vaciar">Vaciar libro</button>
   <div class="pestanas" role="tablist">
@@ -195,13 +212,18 @@ body.modo-libro.quieto{cursor:none}
   <section id="panel-control">
     <div class="etiqueta">Pantalla 1 · elegir y escribir</div>
     <div id="carrusel"></div>
+    <div id="pedir-carpeta" hidden>
+      <h3 id="pedir-titulo">Tu carpeta de fotos</h3>
+      <p id="pedir-texto">Por seguridad el navegador pide confirmar el acceso cada vez que abres la página.</p>
+      <button class="btn principal" id="btn-abrir-carpeta">Abrir carpeta</button>
+    </div>
     <button class="flecha" id="anterior" aria-label="Foto anterior">‹</button>
     <button class="flecha" id="siguiente" aria-label="Foto siguiente">›</button>
     <div class="pie">
       <div id="contador"></div>
       <div class="nombre" id="nombre"></div>
       <div class="botones"><button class="btn principal" id="btn-elegir">Elegir esta foto</button></div>
-      <div class="nota" id="nota-ejemplo">Fotos de ejemplo · usa «Elegir fotos» para cargar las tuyas</div>
+      <div class="nota" id="nota-ejemplo">Fotos de ejemplo · en «Carpeta de fotos» eliges la tuya</div>
     </div>
 
     <section id="escritura" aria-hidden="true">
@@ -255,6 +277,23 @@ body.modo-libro.quieto{cursor:none}
   </section>
 </main>
 
+<div id="config" hidden role="dialog" aria-modal="true" aria-labelledby="config-titulo">
+  <div class="caja">
+    <button class="cerrar" id="config-cerrar" aria-label="Cerrar">×</button>
+    <h2 id="config-titulo">Carpeta de fotos</h2>
+    <p class="sub">Elige una vez la carpeta y el libro siempre tomará las fotos desde ahí.</p>
+    <div class="carpeta-actual"><div class="ico"></div><div><b id="carpeta-nombre">Ninguna carpeta elegida</b><span id="carpeta-detalle">Se muestran fotos de ejemplo</span></div></div>
+    <div class="acciones-c">
+      <button class="btn principal" id="btn-elegir-carpeta">Elegir carpeta…</button>
+      <button class="btn" id="btn-actualizar" hidden>Actualizar fotos</button>
+      <button class="btn peligro" id="btn-quitar" hidden>Quitar carpeta</button>
+    </div>
+    <label class="fila"><input type="checkbox" id="chk-sub"> Incluir fotos de subcarpetas</label>
+    <div class="acciones-c"><button class="btn" id="btn-sueltas">Usar fotos sueltas solo esta vez</button></div>
+    <p class="nota-c" id="nota-modo">Si agregas fotos nuevas a la carpeta, pulsa «Actualizar fotos».</p>
+  </div>
+</div>
+
 <div id="aviso" role="status"></div>
 
 <script>
@@ -270,7 +309,12 @@ function aviso(m){const a=$('aviso');a.textContent=m;a.classList.toggle('largo',
 /* ===================== Almacenamiento ===================== */
 let memoria=[],usarDB=true,sigId=1;
 const conTiempo=(p,ms=2500)=>Promise.race([p,new Promise((_,mal)=>setTimeout(()=>mal(new Error('tiempo')),ms))]);
-function abrirDB(){return new Promise((ok,mal)=>{const p=indexedDB.open('libro-recuerdos-v2',1);p.onupgradeneeded=()=>p.result.createObjectStore('r',{keyPath:'id',autoIncrement:true});p.onsuccess=()=>ok(p.result);p.onerror=()=>mal(p.error);});}
+function abrirDB(){return new Promise((ok,mal)=>{const p=indexedDB.open('libro-recuerdos-v2',2);p.onupgradeneeded=()=>{const db=p.result;if(!db.objectStoreNames.contains('r'))db.createObjectStore('r',{keyPath:'id',autoIncrement:true});if(!db.objectStoreNames.contains('config'))db.createObjectStore('config');if(!db.objectStoreNames.contains('galeria'))db.createObjectStore('galeria',{keyPath:'clave'});};p.onsuccess=()=>ok(p.result);p.onerror=()=>mal(p.error);p.onblocked=()=>mal(new Error('bloqueada'));});}
+async function cfgLeer(k){try{const db=await conTiempo(abrirDB());return await conTiempo(new Promise((ok,mal)=>{const q=db.transaction('config').objectStore('config').get(k);q.onsuccess=()=>ok(q.result);q.onerror=()=>mal(q.error);}));}catch(e){return undefined;}}
+async function cfgGuardar(k,v){try{const db=await conTiempo(abrirDB());await conTiempo(new Promise((ok,mal)=>{const tx=db.transaction('config','readwrite');v===undefined?tx.objectStore('config').delete(k):tx.objectStore('config').put(v,k);tx.oncomplete=ok;tx.onerror=()=>mal(tx.error);}));return true;}catch(e){return false;}}
+async function galeriaLeer(){try{const db=await conTiempo(abrirDB());return await conTiempo(new Promise((ok,mal)=>{const q=db.transaction('galeria').objectStore('galeria').getAll();q.onsuccess=()=>ok(q.result);q.onerror=()=>mal(q.error);}),8000);}catch(e){return [];}}
+async function galeriaVaciar(){try{const db=await conTiempo(abrirDB());await conTiempo(new Promise(ok=>{const tx=db.transaction('galeria','readwrite');tx.objectStore('galeria').clear();tx.oncomplete=ok;tx.onerror=ok;}));}catch(e){}}
+async function galeriaAgregar(item){try{const db=await conTiempo(abrirDB());await conTiempo(new Promise((ok,mal)=>{const tx=db.transaction('galeria','readwrite');tx.objectStore('galeria').put(item);tx.oncomplete=ok;tx.onerror=()=>mal(tx.error);}),8000);return true;}catch(e){return false;}}
 async function dbAgregar(r){delete r.id;if(usarDB){try{const db=await conTiempo(abrirDB());return await conTiempo(new Promise((ok,mal)=>{const tx=db.transaction('r','readwrite');const q=tx.objectStore('r').add(r);q.onsuccess=()=>ok(q.result);tx.onerror=()=>mal(tx.error);}));}catch(e){usarDB=false;}}r.id=sigId++;memoria.push(r);return r.id;}
 async function dbTodos(){if(usarDB){try{const db=await conTiempo(abrirDB());return await conTiempo(new Promise((ok,mal)=>{const q=db.transaction('r').objectStore('r').getAll();q.onsuccess=()=>ok(q.result.sort((a,b)=>a.id-b.id));q.onerror=()=>mal(q.error);}));}catch(e){usarDB=false;}}return memoria.slice();}
 async function dbVaciar(){memoria=[];if(usarDB){try{const db=await conTiempo(abrirDB());await conTiempo(new Promise(ok=>{const tx=db.transaction('r','readwrite');tx.objectStore('r').clear();tx.oncomplete=ok;tx.onerror=ok;}));}catch(e){usarDB=false;}}}
@@ -355,12 +399,120 @@ function deArchivos(files){
   const l=[...files].filter(f=>f.type.startsWith('image/')||/\.(jpe?g|png|webp|gif|bmp|avif)$/i.test(f.name))
     .sort((a,b)=>(a.webkitRelativePath||a.name).localeCompare(b.webkitRelativePath||b.name,undefined,{numeric:true}))
     .map(f=>({blob:f,nombre:f.name,clave:(f.webkitRelativePath||f.name)+'|'+f.size}));
-  if(!l.length){aviso('No encontré fotos ahí');return;}cargarFotos(l,false);aviso(l.length+' fotos cargadas');
+  if(!l.length){aviso('No encontré fotos ahí');return;}mostrarPedir(false);cargarFotos(l,false);aviso(l.length+' fotos cargadas solo por esta vez');
 }
-$('btn-fotos').onclick=()=>$('entrada-fotos').click();
-$('btn-carpeta').onclick=()=>$('entrada-carpeta').click();
-$('entrada-fotos').onchange=e=>{deArchivos(e.target.files);e.target.value='';};
-$('entrada-carpeta').onchange=e=>{deArchivos(e.target.files);e.target.value='';};
+/* ---------- Carpeta predeterminada ----------
+   Modo "enlace": Chrome/Edge en computador recuerdan la carpeta y leen las fotos directo desde ahí.
+   Modo "copia": otros navegadores (teléfono, Safari, Firefox): se guarda una copia de las fotos en este navegador. */
+const EXT=/\.(jpe?g|png|webp|gif|bmp|avif)$/i;
+const PUEDE_ENLAZAR=typeof window.showDirectoryPicker==='function'&&!EN_MARCO;
+let carpeta=null; // {modo:'enlace',handle,nombre,sub} | {modo:'copia',nombre,cantidad}
+const ordenar=l=>l.sort((a,b)=>a.ruta.localeCompare(b.ruta,undefined,{numeric:true}));
+
+async function leerHandle(h,sub,base=''){
+  const out=[];
+  for await(const e of h.values()){
+    if(e.kind==='file'&&EXT.test(e.name)){try{const f=await e.getFile();out.push({blob:f,nombre:e.name,ruta:base+e.name,clave:base+e.name+'|'+f.size});}catch(_){}}
+    else if(e.kind==='directory'&&sub&&!e.name.startsWith('.'))out.push(...await leerHandle(e,sub,base+e.name+'/'));
+  }
+  return out;
+}
+async function cargarDesdeCarpeta(pedir){
+  if(!carpeta)return false;
+  if(carpeta.modo==='copia'){
+    const g=await galeriaLeer();if(!g.length)return false;
+    cargarFotos(ordenar(g.map(x=>({blob:x.blob,nombre:x.nombre,ruta:x.ruta||x.nombre,clave:x.clave}))),false);return true;
+  }
+  const h=carpeta.handle;let p='prompt';
+  try{p=await h.queryPermission({mode:'read'});if(p!=='granted'&&pedir)p=await h.requestPermission({mode:'read'});}catch(e){p='denied';}
+  if(p!=='granted'){mostrarPedir(true);return false;}
+  mostrarPedir(false);
+  try{
+    const l=ordenar(await leerHandle(h,carpeta.sub));
+    if(!l.length){aviso('La carpeta «'+carpeta.nombre+'» no tiene fotos');cargarFotos([],false);mostrarPedir(true,'vacia');return true;}
+    cargarFotos(l,false);return true;
+  }catch(e){console.error(e);aviso('No pude leer la carpeta. Elígela de nuevo en «Carpeta de fotos».');mostrarPedir(true,'error');return false;}
+}
+function mostrarPedir(si,motivo){
+  const c=$('pedir-carpeta');c.hidden=!si;if(!si)return;
+  $('nota-ejemplo').hidden=true;
+  if(motivo==='vacia'){$('pedir-titulo').textContent='La carpeta «'+carpeta.nombre+'» está vacía';$('pedir-texto').textContent='Agrega fotos y pulsa el botón, o elige otra carpeta en «Carpeta de fotos».';$('btn-abrir-carpeta').textContent='Volver a buscar fotos';}
+  else{$('pedir-titulo').textContent='Tu carpeta «'+carpeta.nombre+'»';$('pedir-texto').textContent='Por seguridad, el navegador pide confirmar el acceso al abrir la página. Toca el botón y elige «Permitir en cada visita» si aparece.';$('btn-abrir-carpeta').textContent='Abrir mis fotos';}
+}
+$('btn-abrir-carpeta').onclick=()=>cargarDesdeCarpeta(true);
+
+async function elegirCarpeta(){
+  if(PUEDE_ENLAZAR){
+    let h;
+    try{h=await window.showDirectoryPicker({id:'libro-fotos',mode:'read',startIn:'pictures'});}
+    catch(e){if(e.name==='AbortError')return;console.error(e);$('entrada-carpeta').click();return;}
+    carpeta={modo:'enlace',handle:h,nombre:h.name,sub:$('chk-sub').checked};
+    const ok=await cfgGuardar('carpeta',carpeta);
+    await galeriaVaciar();
+    if(await cargarDesdeCarpeta(false))aviso(fotos.length+' fotos desde «'+h.name+'»'+(ok?' · quedó como carpeta predeterminada':''));
+    pintarConfig();cerrarConfig();
+  }else{
+    $('entrada-carpeta').click();
+  }
+}
+// Modo copia: guarda una copia liviana de cada foto en el navegador
+async function copiarFotos(files,nombre){
+  const l=[...files].filter(f=>f.type.startsWith('image/')||EXT.test(f.name));
+  if(!l.length){aviso('No encontré fotos ahí');return;}
+  cerrarConfig();await galeriaVaciar();
+  const lista=[];let n=0;
+  for(const f of l){
+    n++;if(n%3===1)aviso('Guardando fotos '+n+' de '+l.length+'…');
+    const ruta=f.webkitRelativePath?f.webkitRelativePath.split('/').slice(1).join('/'):f.name;
+    if(!$('chk-sub').checked&&ruta.includes('/'))continue;
+    let blob;try{blob=await reducirImagen(f,1800);}catch(e){continue;}
+    const item={clave:ruta+'|'+f.size,nombre:f.name,ruta,blob};lista.push(item);await galeriaAgregar(item);
+  }
+  if(!lista.length){aviso('No pude abrir esas fotos');return;}
+  carpeta={modo:'copia',nombre,cantidad:lista.length};await cfgGuardar('carpeta',carpeta);
+  cargarFotos(ordenar(lista),false);pintarConfig();
+  aviso(lista.length+' fotos guardadas · «'+nombre+'» quedó como carpeta predeterminada');
+}
+$('entrada-carpeta').onchange=e=>{const fs=e.target.files;const nom=fs.length&&fs[0].webkitRelativePath?fs[0].webkitRelativePath.split('/')[0]:'Mis fotos';copiarFotos(fs,nom);e.target.value='';};
+$('entrada-fotos').onchange=e=>{const fs=[...e.target.files];e.target.value='';if(e.target.dataset.modo==='copia'){copiarFotos(fs,'Fotos elegidas');}else{cerrarConfig();deArchivos(fs);}};
+
+async function quitarCarpeta(){
+  carpeta=null;await cfgGuardar('carpeta',undefined);await galeriaVaciar();mostrarPedir(false);pintarConfig();
+  cargarFotos(await ejemplos(),true);aviso('Carpeta quitada');
+}
+function pintarConfig(){
+  const hay=!!carpeta;
+  $('carpeta-nombre').textContent=hay?carpeta.nombre:'Ninguna carpeta elegida';
+  $('carpeta-detalle').textContent=!hay?'Se muestran fotos de ejemplo':carpeta.modo==='enlace'?`${fotos.length} fotos · se leen directo de la carpeta`:`${fotos.length} fotos guardadas en este navegador`;
+  $('btn-elegir-carpeta').textContent=hay?'Cambiar carpeta…':'Elegir carpeta…';
+  $('btn-actualizar').hidden=!hay;$('btn-quitar').hidden=!hay;
+  $('chk-sub').checked=hay&&carpeta.modo==='enlace'?!!carpeta.sub:$('chk-sub').checked;
+  $('nota-modo').textContent=PUEDE_ENLAZAR
+    ?'Las fotos se leen directo desde tu carpeta: si agregas fotos nuevas, pulsa «Actualizar fotos».'
+    :(/iPhone|iPad|Android/i.test(navigator.userAgent)
+      ?'En el teléfono se elige un grupo de fotos y se guarda una copia en este navegador; quedan listas cada vez que abras la página.'
+      :'Este navegador no puede recordar carpetas: se guarda una copia de las fotos aquí. Para leer la carpeta directo, usa Chrome o Edge en el computador.');
+}
+async function actualizar(){
+  if(!carpeta)return;
+  if(carpeta.modo==='enlace'){if(await cargarDesdeCarpeta(true)){aviso(fotos.length+' fotos en «'+carpeta.nombre+'»');pintarConfig();}}
+  else{abrirSelector();}
+}
+function abrirSelector(){
+  if(/iPhone|iPad|Android/i.test(navigator.userAgent)){$('entrada-fotos').dataset.modo='copia';$('entrada-fotos').click();}
+  else $('entrada-carpeta').click();
+}
+function abrirConfig(){pintarConfig();$('config').hidden=false;$('btn-elegir-carpeta').focus();}
+function cerrarConfig(){$('config').hidden=true;}
+$('btn-config').onclick=abrirConfig;$('config-cerrar').onclick=cerrarConfig;
+$('config').addEventListener('click',e=>{if(e.target.id==='config')cerrarConfig();});
+$('btn-elegir-carpeta').onclick=()=>{if(PUEDE_ENLAZAR)elegirCarpeta();else abrirSelector();};
+$('btn-actualizar').onclick=actualizar;
+let quitarArmado=false;
+$('btn-quitar').onclick=()=>{const b=$('btn-quitar');if(!quitarArmado){quitarArmado=true;b.textContent='¿Seguro? Toca otra vez';setTimeout(()=>{quitarArmado=false;b.textContent='Quitar carpeta';},3000);return;}quitarArmado=false;b.textContent='Quitar carpeta';quitarCarpeta();};
+$('btn-sueltas').onclick=()=>{$('entrada-fotos').dataset.modo='';$('entrada-fotos').click();};
+$('chk-sub').onchange=async e=>{if(carpeta&&carpeta.modo==='enlace'){carpeta.sub=e.target.checked;await cfgGuardar('carpeta',carpeta);await cargarDesdeCarpeta(true);pintarConfig();}};
+let _ej=null;const ejemplos=()=>_ej||(_ej=Promise.all(ESCENAS.map(async(e,i)=>({blob:await dibujarEjemplo(e,i),nombre:e.nombre,ruta:e.nombre,clave:'ejemplo-'+i}))));
 function posicion(d){const a=Math.abs(d),s=Math.sign(d),x=[0,68,108,132][Math.min(a,3)]*s;
   return{transform:`translate(-50%,-50%) translateX(${x}%) scale(${[1,.72,.52,.4][Math.min(a,3)]}) rotateY(${-s*Math.min(a,2)*20}deg)`,opacity:a>=3?0:1,filter:a?`brightness(${a===1?.55:.35})`:'none'};}
 let movido=false;
@@ -565,6 +717,7 @@ $('btn-vaciar').onclick=async()=>{
 
 /* ===================== Teclado ===================== */
 window.addEventListener('keydown',e=>{
+  if(!$('config').hidden){if(e.key==='Escape')cerrarConfig();return;}
   if(escribiendo){
     if(e.key==='Escape'){e.preventDefault();cancelar();}
     else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();guardar();}
@@ -684,8 +837,13 @@ marcar();
   try{await cargarRecuerdos();usadas=new Set((await dbTodos()).map(r=>r.clave));}catch(e){}
   pintar();tamLibro();
   if(MODO_LIBRO){if(canal)canal.postMessage({tipo:'pedir-estado'});if(aj.auto&&!EN_MARCO)activarCamara();return;}
-  const lista=await Promise.all(ESCENAS.map(async(e,i)=>({blob:await dibujarEjemplo(e,i),nombre:e.nombre,clave:'ejemplo-'+i})));
-  if(!fotos.length)cargarFotos(lista,true);
+  const guardada=await cfgLeer('carpeta');
+  if(guardada&&(guardada.modo==='copia'||(guardada.modo==='enlace'&&guardada.handle&&PUEDE_ENLAZAR))){
+    carpeta=guardada;pintarConfig();
+    if(await cargarDesdeCarpeta(false))return;
+    if(!$('pedir-carpeta').hidden)return; // espera el toque para dar permiso
+  }
+  if(!fotos.length)cargarFotos(await ejemplos(),true);
 })();
 }
 </script>

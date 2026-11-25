@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Libro de recuerdos</title>
-<script>try{var d=JSON.parse(localStorage.getItem('libro-diseno')||'{}');document.documentElement.dataset.tema=d.tema||'navidad';}catch(e){document.documentElement.dataset.tema='navidad';}</script>
+<script>try{var d=JSON.parse(localStorage.getItem('libro-diseno')||'{}');document.documentElement.dataset.tema=d.tema||'navidad';document.documentElement.dataset.letra=d.letra||'gruesa';}catch(e){document.documentElement.dataset.tema='navidad';document.documentElement.dataset.letra='gruesa';}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Mountains+of+Christmas:wght@700&family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
@@ -31,6 +31,14 @@ LAYOUT: control a la izquierda, libro a la derecha; pestañas en teléfono; #lib
   --fuente:"Fredoka","Trebuchet MS","Segoe UI",sans-serif;--fuente-titulo:"Fredoka","Trebuchet MS","Segoe UI",sans-serif;--peso-titulo:600}
 :root[data-tema=llamativa] .btn{border-radius:14px}
 :root[data-tema=llamativa] #libro::before{border-radius:14px}
+/* Letra gruesa y nítida: se lee bien en pantallas de menor resolución */
+:root[data-letra=gruesa]{--fuente:"Segoe UI","Helvetica Neue",Arial,system-ui,sans-serif;--fuente-titulo:"Segoe UI","Helvetica Neue",Arial,system-ui,sans-serif;--peso-titulo:800}
+:root[data-letra=gruesa] body{font-weight:600;font-size:18px}
+:root[data-letra=gruesa] .btn,:root[data-letra=gruesa] .herr{font-weight:700}
+:root[data-letra=gruesa] .nota,:root[data-letra=gruesa] .etiqueta,:root[data-letra=gruesa] small,:root[data-letra=gruesa] .pie .nombre,:root[data-letra=gruesa] .sub,:root[data-letra=gruesa] .nota-c{opacity:.85}
+:root[data-letra=gruesa] .campo>span{opacity:1}
+:root[data-letra=gruesa] .portada-izq p,:root[data-letra=gruesa] .fecha,:root[data-letra=gruesa] .firma{font-style:normal;font-weight:600}
+:root[data-letra=gruesa] .campo input,:root[data-letra=gruesa] .campo textarea{font-weight:600}
 *{box-sizing:border-box;margin:0;padding:0;min-width:0}
 [hidden]{display:none!important}
 html,body{height:100%;overflow:hidden}
@@ -225,6 +233,8 @@ body.modo-libro.quieto{cursor:none}
 .tema-card .mini i{display:block;width:30%;height:72%;border-radius:2px 5px 5px 2px;box-shadow:0 6px 12px rgba(0,0,0,.4)}
 .tema-card .mini b{position:absolute;left:8px;bottom:6px;width:22px;height:8px;border-radius:4px}
 .tema-card span{font-size:17px;font-weight:600;line-height:1.1}
+.letras{grid-template-columns:repeat(2,minmax(0,1fr))}
+.letras .mini{background:rgba(255,255,255,.92);color:#222;font-size:34px}
 .tema-card small{font-size:13px;opacity:.6;line-height:1.2}
 .campo{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;font-size:16px}
 .campo>span{opacity:.75}
@@ -265,6 +275,24 @@ body.modo-libro.quieto{cursor:none}
 :root[data-tema=llamativa] .portada-der h1,:root[data-tema=llamativa] .portada-izq .adorno{color:#7b2ff7}
 :root[data-tema=navidad] .portada-der h1{color:#8c1c24}
 :root[data-tema=navidad] .portada-der .linea{background:#c99a2e;opacity:.8;height:2px}
+/* Pantalla de cámara / IA Experience */
+#ia{position:fixed;inset:0;z-index:45;display:flex;flex-direction:column;background:#05080d}
+.ia-barra{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--panel);border-bottom:1px solid rgba(255,255,255,.12)}
+.ia-barra .sep{flex:1}
+.ia-barra .pasos{color:var(--claro)}
+.ia-cuerpo{position:relative;flex:1;min-height:0}
+#ia-marco{position:absolute;inset:0;width:100%;height:100%;border:0;background:#05080d}
+.ia-msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;background:#05080d;color:var(--claro)}
+.ia-msg h3{font-family:var(--fuente-titulo);font-weight:var(--peso-titulo);font-size:30px}
+.ia-msg p{max-width:520px;opacity:.85}
+.girando{width:46px;height:46px;border-radius:50%;border:4px solid rgba(255,255,255,.2);border-top-color:var(--acento);animation:girar 1s linear infinite}
+@keyframes girar{to{transform:rotate(360deg)}}
+#cam-simple{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;background:#05080d}
+.cs-vista{position:relative;max-width:100%;max-height:calc(100% - 80px);aspect-ratio:4/3;height:100%;border-radius:14px;overflow:hidden;background:#000}
+.cs-vista video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#cs-cuenta{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 22vh/1 system-ui,sans-serif;color:#fff;text-shadow:0 4px 20px rgba(0,0,0,.6);pointer-events:none}
+#cs-cuenta.flash{background:#fff;animation:flash .5s ease-out forwards}
+@keyframes flash{to{background:transparent}}
 #aviso{position:fixed;left:50%;top:16px;transform:translate(-50%,-180%);z-index:60;background:#2b241d;color:#f1e6d2;padding:10px 22px;border-radius:999px;font-size:18px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .4s;max-width:92vw;text-align:center}
 #aviso.ver{transform:translate(-50%,0)}
 #aviso.largo{border-radius:14px;white-space:normal;width:min(560px,92vw);font-size:17px}
@@ -296,7 +324,7 @@ body.modo-libro.quieto{cursor:none}
 <header>
   <h1>Libro de recuerdos</h1>
   <button class="btn" id="btn-diseno">Diseño</button>
-  <button class="btn" id="btn-config">Carpeta de fotos</button>
+  <button class="btn" id="btn-config">Fotos</button>
   <button class="btn" id="btn-ventana">Libro en otra pantalla ↗</button>
   <button class="btn peligro" id="btn-vaciar">Vaciar libro</button>
   <div class="pestanas" role="tablist">
@@ -321,10 +349,10 @@ body.modo-libro.quieto{cursor:none}
     <button class="flecha" id="anterior" aria-label="Foto anterior">‹</button>
     <button class="flecha" id="siguiente" aria-label="Foto siguiente">›</button>
     <div class="pie">
-      <div class="pasos"><span class="ahora">1 · Elige la foto</span><span>2 · Escribe</span><span>3 · Al libro</span></div>
+      <div class="pasos"><span class="ahora" id="paso1">1 · Elige la foto</span><span>2 · Escribe</span><span>3 · Al libro</span></div>
       <div id="contador"></div>
       <div class="nombre" id="nombre"></div>
-      <div class="botones"><button class="btn principal" id="btn-elegir">Elegir esta foto</button></div>
+      <div class="botones"><button class="btn principal" id="btn-tomar" hidden>📷 Tomar foto</button><button class="btn principal" id="btn-elegir">Elegir esta foto</button></div>
       <div class="nota" id="nota-ejemplo">Fotos de ejemplo · en «Carpeta de fotos» eliges la tuya</div>
     </div>
 
@@ -383,8 +411,23 @@ body.modo-libro.quieto{cursor:none}
 <div id="config" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="config-titulo">
   <div class="caja">
     <button class="cerrar" id="config-cerrar" aria-label="Cerrar">×</button>
-    <h2 id="config-titulo">Carpeta de fotos</h2>
-    <p class="sub">Elige una vez la carpeta y el libro siempre tomará las fotos desde ahí.</p>
+    <h2 id="config-titulo">Fotos</h2>
+    <p class="sub">¿De dónde salen las fotos del libro?</p>
+    <div class="temas letras" id="origenes"></div>
+    <div id="sec-ia" hidden>
+      <h3 class="sec">Tomar fotos con IA Experience</h3>
+      <p class="sub" style="margin-bottom:12px">Se abre tu aplicación IA Experience con sus mismos eventos, prompts y ajustes. Al terminar la foto pulsa «📖 Usar en el libro».</p>
+      <div class="acciones-c">
+        <button class="btn principal" id="btn-ia-tomar">📷 Tomar foto ahora</button>
+        <button class="btn" id="btn-ia-ajustes">Configurar IA Experience (prompts y eventos)</button>
+      </div>
+      <div class="carpeta-actual"><div><b id="ia-cuenta">0 fotos tomadas</b><span>Quedan guardadas en este navegador y aparecen en el carrusel.</span></div></div>
+      <div class="acciones-c"><button class="btn peligro" id="btn-ia-borrar">Borrar fotos tomadas</button></div>
+      <label class="campo"><span>Dirección de IA Experience</span><input id="ia-url" spellcheck="false" inputmode="url"></label>
+      <p class="nota-c">La IA necesita internet. Sin internet puedes usar «Foto sin IA» dentro de la misma pantalla de cámara.</p>
+    </div>
+    <div id="sec-carpeta">
+    <h3 class="sec">Carpeta de fotos</h3>
     <div class="carpeta-actual"><div class="ico"></div><div><b id="carpeta-nombre">Ninguna carpeta elegida</b><span id="carpeta-detalle">Se muestran fotos de ejemplo</span></div></div>
     <div class="acciones-c">
       <button class="btn principal" id="btn-elegir-carpeta">Elegir carpeta…</button>
@@ -405,6 +448,7 @@ body.modo-libro.quieto{cursor:none}
       </div>
       <p class="nota-c" id="agente-nota" hidden>Disponible en la versión instalada (abre el libro con INICIAR-Windows.bat). Así funciona en una red Wi-Fi sin internet.</p>
     </div>
+    </div>
   </div>
 </div>
 
@@ -415,6 +459,9 @@ body.modo-libro.quieto{cursor:none}
     <p class="sub">Los cambios se ven al instante en el libro y en la otra pantalla.</p>
     <h3 class="sec" style="border:0;padding-top:0;margin-top:6px">Estilo</h3>
     <div class="temas" id="temas"></div>
+
+    <h3 class="sec">Tipo de letra</h3>
+    <div class="temas letras" id="letras"></div>
 
     <h3 class="sec">Portada</h3>
     <label class="campo"><span>Texto sobre el título</span><input id="d-sub" maxlength="40"></label>
@@ -436,6 +483,26 @@ body.modo-libro.quieto{cursor:none}
 </div>
 <input type="file" id="in-portada" accept="image/*" hidden>
 <input type="file" id="in-textura" accept="image/*" multiple hidden>
+
+<section id="ia" hidden aria-label="Tomar foto">
+  <div class="ia-barra">
+    <button class="btn" id="ia-volver">← Volver</button>
+    <div class="pasos"><span class="ahora">1 · Toma la foto</span><span>2 · Escribe</span><span>3 · Al libro</span></div>
+    <span class="sep"></span>
+    <button class="btn" id="ia-ajustes">Configurar IA</button>
+    <button class="btn" id="ia-simple">Foto sin IA</button>
+  </div>
+  <div class="ia-cuerpo">
+    <iframe id="ia-marco" title="IA Experience" allow="camera; microphone; fullscreen; clipboard-write; autoplay"></iframe>
+    <div id="ia-espera" class="ia-msg"><div class="girando"></div><p>Abriendo IA Experience…</p></div>
+    <div id="ia-sin" class="ia-msg" hidden><h3>No se pudo abrir IA Experience</h3><p>La IA necesita internet. Puedes tomar una foto normal, sin IA, y seguir con el libro.</p>
+      <div class="acciones-c" style="justify-content:center"><button class="btn principal" id="ia-sin-btn">📷 Tomar foto sin IA</button><button class="btn" id="ia-reintentar">Reintentar con IA</button></div></div>
+    <div id="cam-simple" hidden>
+      <div class="cs-vista"><video id="cs-video" playsinline muted autoplay></video><div id="cs-cuenta"></div></div>
+      <div class="acciones-c" style="justify-content:center"><button class="btn principal" id="cs-tomar">📷 Tomar foto (3 s)</button><button class="btn" id="cs-ia">Usar IA Experience</button></div>
+    </div>
+  </div>
+</section>
 
 <div id="aviso" role="status"></div>
 
@@ -580,7 +647,8 @@ async function cargarDesdeCarpeta(pedir){
 function mostrarPedir(si,motivo){
   const c=$('pedir-carpeta');c.hidden=!si;if(!si)return;
   $('nota-ejemplo').hidden=true;$('pedir-datos').hidden=motivo!=='agente';
-  $('btn-abrir-carpeta').onclick=motivo==='agente'?abrirConfig:()=>cargarDesdeCarpeta(true);
+  $('btn-abrir-carpeta').onclick=motivo==='agente'?abrirConfig:motivo==='ia'?()=>abrirIA():()=>cargarDesdeCarpeta(true);
+  if(motivo==='ia'){$('pedir-titulo').textContent='Toma la primera foto';$('pedir-texto').textContent='Se abre IA Experience con tu cámara, tus eventos y tus prompts. Cuando la foto esté lista pulsa «📖 Usar en el libro».';$('btn-abrir-carpeta').textContent='📷 Tomar foto';return;}
   if(motivo==='agente'){$('pedir-titulo').textContent='Esperando fotos del agente';$('pedir-texto').textContent='Las fotos aparecen aquí apenas se envíen. Ambos equipos deben estar en la misma red Wi-Fi.';$('pedir-url').textContent=urlAgente();$('pedir-clave').textContent=claveBonita();$('btn-abrir-carpeta').textContent='Ver datos de conexión';return;}
   if(motivo==='vacia'){$('pedir-titulo').textContent='La carpeta «'+carpeta.nombre+'» está vacía';$('pedir-texto').textContent='Agrega fotos y pulsa el botón, o elige otra carpeta en «Carpeta de fotos».';$('btn-abrir-carpeta').textContent='Volver a buscar fotos';}
   else{$('pedir-titulo').textContent='Tu carpeta «'+carpeta.nombre+'»';$('pedir-texto').textContent='Por seguridad, el navegador pide confirmar el acceso al abrir la página. Toca el botón y elige «Permitir en cada visita» si aparece.';$('btn-abrir-carpeta').textContent='Abrir mis fotos';}
@@ -650,7 +718,7 @@ function abrirSelector(){
   if(/iPhone|iPad|Android/i.test(navigator.userAgent)){$('entrada-fotos').dataset.modo='copia';$('entrada-fotos').click();}
   else $('entrada-carpeta').click();
 }
-function abrirConfig(){pintarConfig();$('config').hidden=false;$('btn-elegir-carpeta').focus();}
+function abrirConfig(){pintarConfig();pintarOrigenes();$('config').hidden=false;}
 function cerrarConfig(){$('config').hidden=true;}
 $('btn-config').onclick=abrirConfig;$('config-cerrar').onclick=cerrarConfig;
 $('config').addEventListener('click',e=>{if(e.target.id==='config')cerrarConfig();});
@@ -696,6 +764,105 @@ let borrarArmado=false;
 $('btn-borrar-agente').onclick=async()=>{const b=$('btn-borrar-agente');if(!borrarArmado){borrarArmado=true;b.textContent='¿Seguro? Toca otra vez';setTimeout(()=>{borrarArmado=false;b.textContent='Borrar fotos recibidas';},3000);return;}
   borrarArmado=false;b.textContent='Borrar fotos recibidas';try{await fetch('api/borrar',{method:'POST'});}catch(e){}await cargarAgente(true);pintarConfig();aviso('Fotos recibidas borradas');};
 
+/* ---------- Origen de las fotos: carpeta o tomar fotos con IA Experience ---------- */
+let ORIGEN='carpeta',tomadas=[],iaListo=false,iaTimer=null,iaAjustes=false,csStream=null;
+const IA_PRED=/vercel\.app$/.test(location.hostname)?location.origin+'/':'https://idelux-ai-experience.vercel.app/';
+let IA_URL=IA_PRED;
+const iaOrigen=()=>{try{return new URL(IA_URL).origin;}catch(e){return null;}};
+function pintarOrigenes(){
+  const L=[['carpeta','📁 Carpeta de fotos','Fotos de una carpeta de este PC o del agente Wi-Fi'],['ia','📷 Tomar fotos con IA','Usa la cámara con IA Experience (tus prompts y eventos)']];
+  $('origenes').replaceChildren(...L.map(([k,n,d])=>{const b=document.createElement('button');b.className='tema-card';b.setAttribute('aria-pressed',String(ORIGEN===k));
+    b.innerHTML=`<div><span>${n}</span><br><small>${d}</small></div>`;b.onclick=()=>ponerOrigen(k);return b;}));
+  $('sec-ia').hidden=ORIGEN!=='ia';$('sec-carpeta').hidden=ORIGEN==='ia';
+  $('ia-cuenta').textContent=tomadas.length===1?'1 foto tomada':tomadas.length+' fotos tomadas';
+  if(document.activeElement!==$('ia-url'))$('ia-url').value=IA_URL;
+}
+function pintarPie(){
+  const ia=ORIGEN==='ia';$('btn-tomar').hidden=!ia;
+  $('btn-elegir').textContent=ia?'Usar esta foto':'Elegir esta foto';$('btn-elegir').classList.toggle('principal',!ia);
+  $('paso1').textContent=ia?'1 · Toma la foto':'1 · Elige la foto';
+  if(ia)$('nota-ejemplo').hidden=true;
+}
+async function cargarTomadas(){const t=await cfgLeer('tomadas');tomadas=Array.isArray(t)?t.filter(x=>x&&x.blob):[];}
+function mostrarTomadas(ultima){
+  clearInterval(sondeo);
+  cargarFotos(tomadas.slice().sort((a,b)=>a.t-b.t).map(x=>({blob:x.blob,nombre:x.nombre,ruta:x.nombre,clave:x.clave})),false);
+  if(!tomadas.length)mostrarPedir(true,'ia');else{mostrarPedir(false);actual=ultima?Math.max(0,fotos.findIndex(f=>f.clave===ultima)):fotos.length-1;pintarCarrusel();}
+  pintarPie();
+}
+async function ponerOrigen(o){
+  if(o===ORIGEN){pintarOrigenes();return;}
+  ORIGEN=o;await cfgGuardar('origen',o);
+  if(o==='ia'){await cargarTomadas();mostrarTomadas();}
+  else{mostrarPedir(false);pintarPie();await cargarSegunCarpeta();}
+  pintarOrigenes();pintarConfig();
+}
+function abrirIA(ajustes){
+  if(escribiendo)return;
+  cerrarConfig();detenerCamSimple();
+  $('ia').hidden=false;$('ia-sin').hidden=true;$('cam-simple').hidden=true;$('ia-espera').hidden=false;$('ia-marco').hidden=false;
+  iaListo=false;iaAjustes=!!ajustes;
+  let u;try{u=new URL(IA_URL);u.searchParams.set('libro','1');}catch(e){sinIA();return;}
+  $('ia-marco').src=u.href;
+  clearInterval(iaTimer);let n=0;
+  iaTimer=setInterval(()=>{
+    if(iaListo){clearInterval(iaTimer);return;}
+    if(++n>=30){clearInterval(iaTimer);sinIA();return;}
+    try{$('ia-marco').contentWindow.postMessage({tipo:'libro-hola'},iaOrigen());}catch(e){}
+  },500);
+}
+function sinIA(){$('ia-espera').hidden=true;$('ia-marco').hidden=true;$('ia-marco').src='about:blank';$('ia-sin').hidden=false;}
+function cerrarIA(){
+  clearInterval(iaTimer);
+  try{$('ia-marco').contentWindow.postMessage({tipo:'libro-cerrar'},iaOrigen());}catch(e){}
+  $('ia-marco').src='about:blank';detenerCamSimple();$('ia').hidden=true;
+}
+window.addEventListener('message',e=>{
+  if(!iaOrigen()||e.origin!==iaOrigen())return;
+  const d=e.data||{};
+  if(d.tipo==='libro-listo'&&!iaListo){iaListo=true;$('ia-espera').hidden=true;
+    try{e.source.postMessage({tipo:iaAjustes?'libro-ajustes':'libro-abrir-camara'},e.origin);}catch(_){}}
+  if(d.tipo==='libro-foto'&&typeof d.imagen==='string'&&/^data:image\/(png|jpeg|webp);base64,/.test(d.imagen))recibirFoto(d.imagen,!!d.ia);
+});
+async function recibirFoto(dataUrl,conIA){
+  try{
+    const blob=await (await fetch(dataUrl)).blob();
+    const red=await reducirImagen(blob,1800).catch(()=>blob);
+    const t=Date.now(),item={clave:'tomada-'+t,nombre:(conIA?'Foto con IA · ':'Foto · ')+new Date(t).toLocaleString('es-CL',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}),blob:red,t};
+    tomadas.push(item);cfgGuardar('tomadas',tomadas);
+    cerrarIA();
+    if(ORIGEN!=='ia'){ORIGEN='ia';cfgGuardar('origen','ia');}
+    mostrarTomadas(item.clave);pintarOrigenes();
+    aviso(conIA?'✓ Foto con IA lista: ahora escribe tu recuerdo':'✓ Foto lista: ahora escribe tu recuerdo');
+    setTimeout(()=>elegir(),350);
+  }catch(err){console.error(err);aviso('No se pudo recibir la foto. Inténtalo otra vez.');}
+}
+// Foto sin IA (funciona sin internet)
+async function camSimple(){
+  clearInterval(iaTimer);$('ia-marco').src='about:blank';$('ia-marco').hidden=true;$('ia-espera').hidden=true;$('ia-sin').hidden=true;$('cam-simple').hidden=false;
+  try{csStream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1920},height:{ideal:1080}},audio:false});$('cs-video').srcObject=csStream;await $('cs-video').play().catch(()=>{});}
+  catch(e){aviso('No se pudo abrir la cámara ('+(e.name||e.message)+')');}
+}
+function detenerCamSimple(){if(csStream)csStream.getTracks().forEach(t=>t.stop());csStream=null;}
+let csOcupado=false;
+$('cs-tomar').onclick=async()=>{
+  const v=$('cs-video');if(csOcupado||!csStream||!v.videoWidth)return;csOcupado=true;const c=$('cs-cuenta');
+  for(const n of[3,2,1]){c.className='';c.textContent=n;await new Promise(r=>setTimeout(r,850));}
+  c.textContent='';c.className='flash';
+  const k=document.createElement('canvas');k.width=v.videoWidth;k.height=v.videoHeight;const g=k.getContext('2d');g.translate(k.width,0);g.scale(-1,1);g.drawImage(v,0,0);
+  csOcupado=false;recibirFoto(k.toDataURL('image/jpeg',.92),false);
+};
+$('cs-ia').onclick=()=>abrirIA();$('ia-sin-btn').onclick=camSimple;$('ia-simple').onclick=camSimple;$('ia-reintentar').onclick=()=>abrirIA();
+$('ia-volver').onclick=cerrarIA;
+$('ia-ajustes').onclick=()=>{if(iaListo){try{$('ia-marco').contentWindow.postMessage({tipo:'libro-ajustes'},iaOrigen());}catch(e){}}else abrirIA(true);};
+$('btn-tomar').onclick=()=>abrirIA();
+$('btn-ia-tomar').onclick=()=>abrirIA();
+$('btn-ia-ajustes').onclick=()=>abrirIA(true);
+$('ia-url').addEventListener('change',e=>{let v=e.target.value.trim();if(!/^https?:\/\//.test(v))v='https://'+v;try{IA_URL=new URL(v).href;cfgGuardar('iaUrl',IA_URL);aviso('Dirección de IA Experience guardada');}catch(err){aviso('Dirección no válida');}pintarOrigenes();});
+let iaBorrarArmado=false;
+$('btn-ia-borrar').onclick=async()=>{const b=$('btn-ia-borrar');if(!iaBorrarArmado){iaBorrarArmado=true;b.textContent='¿Seguro? Toca otra vez';setTimeout(()=>{iaBorrarArmado=false;b.textContent='Borrar fotos tomadas';},3000);return;}
+  iaBorrarArmado=false;b.textContent='Borrar fotos tomadas';tomadas=[];await cfgGuardar('tomadas',[]);mostrarTomadas();pintarOrigenes();aviso('Fotos tomadas borradas');};
+
 let _ej=null;const ejemplos=()=>_ej||(_ej=Promise.all(ESCENAS.map(async(e,i)=>({blob:await dibujarEjemplo(e,i),nombre:e.nombre,ruta:e.nombre,clave:'ejemplo-'+i}))));
 function posicion(d){const a=Math.abs(d),s=Math.sign(d),x=[0,68,108,132][Math.min(a,3)]*s;
   return{transform:`translate(-50%,-50%) translateX(${x}%) scale(${[1,.72,.52,.4][Math.min(a,3)]}) rotateY(${-s*Math.min(a,2)*20}deg)`,opacity:a>=3?0:1,filter:a?`brightness(${a===1?.55:.35})`:'none'};}
@@ -740,7 +907,7 @@ const TEMAS={
 };
 const TAPAS=[['#1d5a3a','Verde pino'],['#9b1c24','Rojo navidad'],['#6e3829','Cuero'],['#1f3a5f','Azul noche'],['#2b2b2b','Negro'],['#e0a526','Dorado'],['#ff3d7f','Fucsia'],['#7b2ff7','Violeta']];
 const HOJAS=[['#f5ecd7','Crema'],['#f1dfa8','Dorado claro'],['#ffffff','Blanco'],['#1b1b1d','Negro'],['#fbf4e6','Marfil'],['#f8e3e6','Rosa'],['#e3eef7','Celeste'],['#e3f1e6','Menta'],['#ecebe7','Gris perla'],['#1f2a44','Azul noche']];
-const DISENO_BASE={tema:'navidad',sub:null,titulo:null,frase:null,firma:'',tapa:null,hoja:null,tinta:null,instr:true};
+const DISENO_BASE={letra:'gruesa',tema:'navidad',sub:null,titulo:null,frase:null,firma:'',tapa:null,hoja:null,tinta:null,instr:true};
 let diseno={...DISENO_BASE},fotoPortada=null,fotoPortadaUrl=null;
 try{Object.assign(diseno,JSON.parse(localStorage.getItem('libro-diseno')||'{}'));}catch(e){}
 if(!TEMAS[diseno.tema])diseno.tema='navidad';
@@ -787,7 +954,7 @@ function decorar(){
   }
 }
 function aplicarDiseno(repintar=true){
-  const raiz=document.documentElement;raiz.dataset.tema=diseno.tema;
+  const raiz=document.documentElement;raiz.dataset.tema=diseno.tema;raiz.dataset.letra=diseno.letra||'gruesa';
   if(diseno.tapa){raiz.style.setProperty('--tapa-c',diseno.tapa);raiz.style.setProperty('--tapa-c2',`color-mix(in srgb,${diseno.tapa} 55%,#000)`);}
   else{raiz.style.removeProperty('--tapa-c');raiz.style.removeProperty('--tapa-c2');}
   if(diseno.hoja)raiz.style.setProperty('--hoja',diseno.hoja);else raiz.style.removeProperty('--hoja');
@@ -818,6 +985,9 @@ function pintarDiseno(){
     const b=document.createElement('button');b.className='tema-card';b.setAttribute('aria-pressed',String(diseno.tema===k));
     b.innerHTML=`<div class="mini" style="background:${t.mini}"><i style="background:${t.miniTapa}"></i><b style="background:${t.miniAcento}"></b></div><div><span>${t.nombre}</span><br><small>${t.desc}</small></div>`;
     b.onclick=()=>{diseno.tema=k;cambio();};return b;}));
+  const LETRAS=[['gruesa','Gruesa y nítida','Recomendada para pantallas de menor resolución','font:800 34px "Segoe UI",Arial,sans-serif'],['estilo','La del estilo','Letra clásica o decorativa de cada estilo','font:600 34px "Cormorant Garamond",Georgia,serif']];
+  $('letras').replaceChildren(...LETRAS.map(([k,n,dsc,f])=>{const b=document.createElement('button');b.className='tema-card';b.setAttribute('aria-pressed',String((diseno.letra||'gruesa')===k));
+    b.innerHTML=`<div class="mini" style="${f}">Aa</div><div><span>${n}</span><br><small>${dsc}</small></div>`;b.onclick=()=>{diseno.letra=k;cambio();};return b;}));
   for(const k of['sub','titulo','frase','firma']){const i=$('d-'+k);if(document.activeElement!==i)i.value=diseno[k]||'';i.placeholder=k==='firma'?'Ej.: Familia Soto · Navidad 2026':T()[k];}
   $('d-instr').checked=diseno.instr!==false;
   muestrasDe($('d-tapa'),TAPAS,diseno.tapa,T().miniTapa,c=>{diseno.tapa=c;cambio();});
@@ -835,7 +1005,7 @@ function cambio(){aplicarDiseno();guardarDiseno();pintarDiseno();}
 let tTexto;
 for(const k of['sub','titulo','frase','firma'])$('d-'+k).addEventListener('input',e=>{diseno[k]=e.target.value||null;if(k==='firma')diseno.firma=e.target.value;clearTimeout(tTexto);tTexto=setTimeout(()=>{aplicarDiseno();guardarDiseno();},250);});
 $('d-instr').onchange=e=>{diseno.instr=e.target.checked;cambio();};
-$('d-restablecer').onclick=()=>{diseno={...DISENO_BASE,tema:diseno.tema};ponerFotoPortada(null);cfgGuardar('fotoPortada',undefined);cambio();aviso('Diseño del estilo «'+T().nombre+'» restablecido');};
+$('d-restablecer').onclick=()=>{diseno={...DISENO_BASE,tema:diseno.tema,letra:diseno.letra};ponerFotoPortada(null);cfgGuardar('fotoPortada',undefined);cambio();aviso('Diseño del estilo «'+T().nombre+'» restablecido');};
 $('d-foto-btn').onclick=()=>$('in-portada').click();
 $('d-tex-btn').onclick=()=>$('in-textura').click();
 $('in-textura').onchange=async e=>{
@@ -1079,6 +1249,7 @@ $('btn-vaciar').onclick=async()=>{
 window.addEventListener('keydown',e=>{
   if(!$('config').hidden){if(e.key==='Escape')cerrarConfig();return;}
   if(!$('diseno').hidden){if(e.key==='Escape')cerrarDiseno();return;}
+  if(!$('ia').hidden){if(e.key==='Escape')cerrarIA();return;}
   if(escribiendo){
     if(e.key==='Escape'){e.preventDefault();cancelar();}
     else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();guardar();}
@@ -1212,6 +1383,13 @@ aplicarDiseno(false);marcar();
   pintar();tamLibro();
   if(MODO_LIBRO){if(canal)canal.postMessage({tipo:'pedir-estado'});if(aj.auto&&!EN_MARCO)activarCamara();return;}
   AGENTE=await infoAgente();
+  const u=await cfgLeer('iaUrl');if(typeof u==='string'&&u)IA_URL=u;
+  ORIGEN=(await cfgLeer('origen'))==='ia'?'ia':'carpeta';
+  if(ORIGEN==='ia'){await cargarTomadas();mostrarTomadas();return;}
+  await cargarSegunCarpeta();
+})();
+async function cargarSegunCarpeta(){
+  pintarPie();
   const guardada=await cfgLeer('carpeta');
   if(guardada&&guardada.modo==='agente'&&AGENTE){carpeta=guardada;pintarConfig();await cargarAgente(true);return;}
   if(guardada&&(guardada.modo==='copia'||(guardada.modo==='enlace'&&guardada.handle&&PUEDE_ENLAZAR))){
@@ -1219,8 +1397,8 @@ aplicarDiseno(false);marcar();
     if(await cargarDesdeCarpeta(false))return;
     if(!$('pedir-carpeta').hidden)return; // espera el toque para dar permiso
   }
-  if(!fotos.length)cargarFotos(await ejemplos(),true);
-})();
+  if(!fotos.length||ORIGEN==='carpeta'&&!carpeta)cargarFotos(await ejemplos(),true);
+}
 }
 </script>
 </body>
